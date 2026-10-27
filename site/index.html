@@ -121,6 +121,8 @@
     padding-right: max(20px, env(safe-area-inset-right));
   }
   section { padding: 80px 0; }
+  /* Anchor jumps land below the sticky nav (60px + notch), not under it */
+  [id] { scroll-margin-top: calc(76px + env(safe-area-inset-top)); }
   h1, h2, h3 { line-height: 1.15; letter-spacing: -0.02em; margin: 0; }
   h2 { font-size: clamp(28px, 4vw, 38px); text-wrap: balance; }
   .eyebrow { font: 600 13px/1 var(--mono); color: var(--accent); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px; }
@@ -676,6 +678,14 @@
 
   // Scroll reveal: once per element, starting a little before it enters the viewport
   const revealEls = document.querySelectorAll(".reveal");
+  // In-page links (e.g. "Get early access") jump straight to a section: show it immediately
+  // instead of landing on a blank area while the fade-in catches up
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest('a[href^="#"]');
+    const target = a && a.getAttribute("href").length > 1 && document.querySelector(a.getAttribute("href"));
+    if (!target) return;
+    [target, ...target.querySelectorAll(".reveal")].forEach((el) => el.classList.contains("reveal") && el.classList.add("in"));
+  });
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver((entries) => {
       entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } });
