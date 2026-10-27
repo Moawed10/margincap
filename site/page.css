@@ -51,3 +51,6 @@ th { color: var(--text); font-weight: 600; }
 td { color: var(--text-2); }
 @media (prefers-reduced-motion: reduce) { .btn:active { transform: none; } }
 @media (prefers-reduced-transparency: reduce) { header { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 260ms; animation-timing-function: var(--ease-out); }
+@media (prefers-reduced-motion: reduce) { ::view-transition-old(root), ::view-transition-new(root) { animation: none; } }

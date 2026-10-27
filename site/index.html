@@ -61,40 +61,48 @@
 <!-- TODO analytics: paste your Plausible or Umami <script> tag here -->
 <script>document.documentElement.classList.add("js")</script>
 <style>
-  /* Colour carries meaning only: green = profit, red = loss. Everything else is greyscale,
-     so the two numbers that matter are the loudest thing on the page. */
   :root {
     --bg: #ffffff;
     --bg-alt: #f5f5f7;
-    --fill: #ffffff;           /* panels sitting on --bg-alt */
+    --fill: #ffffff;
     --text: #1d1d1f;
-    --text-2: #6e6e73;         /* 4.9:1 on --bg-alt, 5.4:1 on white */
+    --text-2: #6e6e73;
     --hairline: #d2d2d7;
-    --gain: #1a7f37;           /* 5.1:1 on white */
-    --loss: #c4281c;           /* 5.6:1 on white */
+    --gain: #1a7f37;
+    --loss: #c4281c;
     --loss-fill: #fff2f1;
-    --code-bg: #1d1d1f;
-    --code-text: #f5f5f7;
-    --code-dim: #a1a1a6;
+    /* The product window is always a dark screen, in both themes */
+    --scr: #111113;
+    --scr-2: #1a1a1d;
+    --scr-3: #232327;
+    --scr-line: #2c2c31;
+    --scr-text: #f5f5f7;
+    --scr-text-2: #9b9ba3;
+    --scr-gain: #30d158;
+    --scr-loss: #ff6b60;
+    --scr-loss-fill: rgba(255, 69, 58, 0.11);
     --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
     --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-    --press: 120ms;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #000000;
-      --bg-alt: #161617;
-      --fill: #1d1d1f;
+      --bg-alt: #0f0f10;
+      --fill: #1c1c1e;
       --text: #f5f5f7;
       --text-2: #a1a1a6;
-      --hairline: #424245;
+      --hairline: #3a3a3e;
       --gain: #30d158;
       --loss: #ff6b60;
       --loss-fill: rgba(255, 69, 58, 0.14);
-      --code-bg: #1d1d1f;
+      --scr: #131315;
+      --scr-line: #2e2e33;
     }
   }
+  @view-transition { navigation: auto; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 260ms; animation-timing-function: var(--ease-out); }
+
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
   body {
@@ -103,239 +111,370 @@
     -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
   }
   a { color: inherit; }
-  .wrap {
-    max-width: 1024px; margin: 0 auto;
-    padding-left: max(22px, env(safe-area-inset-left));
-    padding-right: max(22px, env(safe-area-inset-right));
-  }
-  section { padding: 128px 0; }
+  button { font: inherit; color: inherit; letter-spacing: inherit; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding-left: max(24px, env(safe-area-inset-left)); padding-right: max(24px, env(safe-area-inset-right)); }
+  section { padding: 136px 0; }
   .alt { background: var(--bg-alt); }
-  [id] { scroll-margin-top: calc(56px + env(safe-area-inset-top)); }
+  [id] { scroll-margin-top: calc(60px + env(safe-area-inset-top)); }
 
-  /* Type: tracking tightens and leading closes as size grows; weight does the emphasis */
   h1, h2, h3 { margin: 0; font-weight: 600; text-wrap: balance; }
-  h1 { font-size: clamp(48px, 8.4vw, 88px); line-height: 1.03; letter-spacing: -0.035em; }
-  h2 { font-size: clamp(34px, 5.2vw, 56px); line-height: 1.07; letter-spacing: -0.028em; }
-  h3 { font-size: clamp(24px, 2.6vw, 28px); line-height: 1.14; letter-spacing: -0.02em; }
-  .lead { font-size: clamp(19px, 2vw, 21px); line-height: 1.38; letter-spacing: -0.016em; color: var(--text-2); text-wrap: pretty; }
-  .center { text-align: center; }
-  .center .lead { margin-left: auto; margin-right: auto; }
+  h1 { font-size: clamp(52px, 8.6vw, 104px); line-height: 0.98; letter-spacing: -0.045em; }
+  h2 { font-size: clamp(36px, 5.4vw, 60px); line-height: 1.04; letter-spacing: -0.035em; }
+  h3 { font-size: 21px; line-height: 1.2; letter-spacing: -0.02em; }
+  .lead { font-size: clamp(19px, 1.9vw, 22px); line-height: 1.36; letter-spacing: -0.018em; color: var(--text-2); text-wrap: pretty; margin: 0; }
+  .eyebrow-num { font: 500 13px/1 var(--mono); color: var(--text-2); letter-spacing: 0; }
   code, pre { font-family: var(--mono); }
-  :not(pre) > code { font-size: 0.88em; letter-spacing: 0; }
-  .gain { color: var(--gain); }
-  .loss { color: var(--loss); }
+  :not(pre) > code { font-size: 0.86em; letter-spacing: 0; }
+  .num { font-variant-numeric: tabular-nums; }
 
-  a, button, summary { touch-action: manipulation; }
-  .btn, summary, .wordmark { user-select: none; -webkit-user-select: none; }
-  :focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 6px; }
+  a, button, summary, [role="tab"], input { touch-action: manipulation; }
+  :focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 8px; }
+  .app :focus-visible { outline-color: var(--scr-text); }
 
-  /* Nav: a translucent layer content scrolls under; the hairline appears only once something is under it */
-  nav {
-    position: sticky; top: 0; z-index: 10;
-    padding-top: env(safe-area-inset-top);
-    background: color-mix(in srgb, var(--bg) 72%, transparent);
-    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
-    box-shadow: 0 1px 0 transparent;
-    transition: box-shadow 200ms ease;
-  }
-  nav.scrolled { box-shadow: 0 1px 0 color-mix(in srgb, var(--hairline) 70%, transparent); }
-  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 52px; }
-  .wordmark { font-weight: 600; font-size: 19px; letter-spacing: -0.03em; text-decoration: none; }
-  .nav-links { display: flex; gap: 28px; align-items: center; font-size: 13px; letter-spacing: -0.005em; }
-  .nav-links a:not(.btn) { text-decoration: none; color: var(--text-2); transition: color 150ms ease; }
-
-  /* Buttons: pill, monochrome, pressed state on pointer-down */
+  /* ---------- Buttons ---------- */
   .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    min-height: 48px; padding: 0 24px; border-radius: 980px; border: 0;
-    font: 500 17px/1 var(--sans); letter-spacing: -0.016em; text-decoration: none; white-space: nowrap; cursor: pointer;
+    position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 50px; padding: 0 26px; border-radius: 14px; border: 0; cursor: pointer;
+    font-weight: 500; font-size: 17px; letter-spacing: -0.016em; text-decoration: none; white-space: nowrap;
     background: var(--text); color: var(--bg);
-    transition: transform var(--press) var(--ease-out), opacity 150ms ease;
+    transition: transform 140ms var(--ease-out), background-color 200ms ease, box-shadow 200ms ease;
+    user-select: none; -webkit-user-select: none;
   }
   .btn:active { transform: scale(0.97); }
-  .btn-sm { position: relative; min-height: 30px; padding: 0 14px; font-size: 13px; letter-spacing: -0.005em; }
-  .btn-sm::after { content: ""; position: absolute; inset: -7px -4px; } /* 44px hit area, same look */
-  .more { color: var(--gain); text-decoration: none; font-size: 17px; letter-spacing: -0.016em; display: inline-flex; align-items: center; gap: 2px; }
-  .more .chev { display: inline-block; transition: transform 200ms var(--ease-out); }
-  @media (hover: hover) and (pointer: fine) {
-    .nav-links a:not(.btn):hover { color: var(--text); }
-    .btn:hover { opacity: 0.86; }
-    .more:hover { text-decoration: underline; text-underline-offset: 3px; }
-    .more:hover .chev { transform: translateX(2px); }
+  .btn-sm { min-height: 34px; padding: 0 14px; font-size: 13px; border-radius: 10px; letter-spacing: -0.005em; }
+  .btn-sm::after { content: ""; position: absolute; inset: -5px -2px; }
+  .link {
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: 500;
+    color: var(--text); padding: 6px 0; border-bottom: 1px solid var(--hairline); transition: border-color 200ms ease;
   }
+  .link .arr { transition: transform 240ms var(--ease-out); }
+  @media (hover: hover) and (pointer: fine) {
+    .btn:hover { box-shadow: 0 6px 20px -8px color-mix(in srgb, var(--text) 60%, transparent); }
+    .link:hover { border-color: var(--text); }
+    .link:hover .arr { transform: translateX(3px); }
+  }
+
+  /* ---------- Nav ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 20; padding-top: env(safe-area-inset-top);
+    background: color-mix(in srgb, var(--bg) 74%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    box-shadow: 0 1px 0 transparent; transition: box-shadow 240ms ease;
+  }
+  nav.scrolled { box-shadow: 0 1px 0 color-mix(in srgb, var(--hairline) 70%, transparent); }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 56px; }
+  .wordmark { display: inline-flex; align-items: center; gap: 9px; font-weight: 600; font-size: 18px; letter-spacing: -0.03em; text-decoration: none; }
+  .wordmark svg { width: 20px; height: 20px; }
+  .nav-links { position: relative; display: flex; gap: 4px; align-items: center; font-size: 14px; }
+  .nav-links a:not(.btn) { position: relative; z-index: 1; padding: 7px 12px; border-radius: 9px; text-decoration: none; color: var(--text-2); transition: color 200ms ease; }
+  .nav-links a[aria-current="true"] { color: var(--text); }
+  .nav-pill { position: absolute; z-index: 0; top: 50%; left: 0; height: 32px; margin-top: -16px; border-radius: 9px; background: color-mix(in srgb, var(--text) 7%, transparent); opacity: 0; pointer-events: none; }
+  .nav-links .btn { margin-left: 12px; }
+  @media (hover: hover) and (pointer: fine) { .nav-links a:not(.btn):hover { color: var(--text); } }
 
   /* ---------- Hero ---------- */
-  .hero { padding: 104px 0 0; text-align: center; overflow: hidden; }
-  .product-name { font-size: clamp(19px, 2vw, 24px); font-weight: 600; letter-spacing: -0.02em; margin: 0 0 14px; color: var(--text-2); }
-  .hero h1 { max-width: 13ch; margin: 0 auto; }
-  .hero .lead { max-width: 34em; margin: 24px auto 0; }
-  .cta-row { margin-top: 36px; display: flex; gap: 28px; align-items: center; justify-content: center; flex-wrap: wrap; }
-  .fine { margin: 22px auto 0; max-width: 36em; font-size: 14px; line-height: 1.43; color: var(--text-2); letter-spacing: -0.008em; }
+  .hero { padding: 88px 0 0; }
+  .hero-top { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 56px; align-items: end; }
+  .hero h1 { max-width: 9.5ch; }
+  .hero-side { padding-bottom: 10px; }
+  .hero-side .lead { max-width: 25em; }
+  .cta-row { margin-top: 32px; display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+  .fine { margin: 20px 0 0; font-size: 13px; line-height: 1.45; color: var(--text-2); letter-spacing: -0.005em; }
 
-  /* The product shot: the margin table is the pitch, so it gets the stage */
-  .shot { max-width: 920px; margin: 72px auto 0; padding-bottom: 8px; text-align: left; }
-  .window {
-    background: var(--fill); border-radius: 22px; overflow: hidden;
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--hairline) 60%, transparent), 0 30px 80px -20px rgba(0,0,0,.22), 0 12px 24px -12px rgba(0,0,0,.12);
+  /* ---------- The app window ---------- */
+  .app-wrap { margin-top: 72px; }
+  .app {
+    position: relative; background: var(--scr); color: var(--scr-text); border-radius: 20px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 1px 0 0 rgba(255,255,255,.06) inset, 0 50px 100px -30px rgba(0,0,0,.45), 0 20px 40px -20px rgba(0,0,0,.3);
+    font-size: 14px; letter-spacing: -0.006em; overflow: hidden;
   }
-  @media (prefers-color-scheme: dark) { .window { box-shadow: 0 0 0 1px var(--hairline), 0 30px 80px -20px rgba(0,0,0,.8); } }
-  .window-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 20px 24px 14px; }
-  .window-head b { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
-  .window-head span { font-size: 13px; color: var(--text-2); }
-  .window-head .loss { font-weight: 600; color: var(--loss); }
-  .grid { width: 100%; border-collapse: collapse; font-size: 15px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
-  .grid th { text-align: left; font-size: 12px; font-weight: 500; color: var(--text-2); letter-spacing: 0; padding: 8px 24px 10px; border-bottom: 1px solid var(--hairline); }
-  .grid td { padding: 13px 24px; border-bottom: 1px solid color-mix(in srgb, var(--hairline) 55%, transparent); white-space: nowrap; }
-  .grid tr:last-child td { border-bottom: 0; }
+  @media (prefers-color-scheme: dark) { .app { box-shadow: 0 0 0 1px var(--scr-line), 0 1px 0 0 rgba(255,255,255,.07) inset, 0 50px 120px -30px rgba(0,0,0,.9); } }
+  .app-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--scr-line); flex-wrap: wrap; }
+  .app-title { display: flex; align-items: baseline; gap: 10px; }
+  .app-title b { font-size: 15px; font-weight: 600; letter-spacing: -0.015em; }
+  .app-title span { font-size: 12px; color: var(--scr-text-2); }
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .seg { position: relative; display: inline-flex; padding: 3px; border-radius: 10px; background: var(--scr-2); box-shadow: inset 0 0 0 1px var(--scr-line); }
+  .seg button { position: relative; z-index: 1; border: 0; background: none; cursor: pointer; padding: 6px 12px; font-size: 13px; font-weight: 500; color: var(--scr-text-2); border-radius: 7px; transition: color 200ms ease; white-space: nowrap; }
+  .seg button[aria-checked="true"] { color: var(--scr-text); }
+  .seg-thumb { position: absolute; z-index: 0; top: 3px; bottom: 3px; left: 0; border-radius: 7px; background: var(--scr-3); box-shadow: 0 1px 2px rgba(0,0,0,.4), inset 0 0 0 1px rgba(255,255,255,.06); }
+  .seg.light { background: var(--bg-alt); box-shadow: inset 0 0 0 1px var(--hairline); }
+  .seg.light button { color: var(--text-2); }
+  .seg.light button[aria-checked="true"] { color: var(--text); }
+  .seg.light .seg-thumb { background: var(--fill); box-shadow: 0 1px 3px rgba(0,0,0,.12), inset 0 0 0 1px color-mix(in srgb, var(--hairline) 60%, transparent); }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--scr-line); margin: 0; }
+  .kpi { padding: 18px 20px 20px; border-left: 1px solid var(--scr-line); min-width: 0; }
+  .kpi:first-child { border-left: 0; }
+  .kpi dt { font-size: 12px; color: var(--scr-text-2); margin-bottom: 6px; }
+  .kpi dd { margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
+  .kpi dd.loss { color: var(--scr-loss); }
+  .kpi dd.gain { color: var(--scr-gain); }
+  .kpi small { display: block; margin-top: 4px; font-size: 12px; font-weight: 400; color: var(--scr-text-2); letter-spacing: 0; }
+
+  /* Rolling digits: each digit is a 0–9 column that springs to its value */
+  .roll { display: inline-flex; font-variant-numeric: tabular-nums; }
+  .roll .d { display: inline-block; height: 1.1em; overflow: hidden; }
+  .roll .d > span { display: block; }
+  .roll .d > span > i { display: block; height: 1.1em; font-style: normal; }
+
+  .table-scroll { overflow-x: auto; }
+  .grid { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .grid th { text-align: left; padding: 0; font-size: 12px; font-weight: 500; color: var(--scr-text-2); border-bottom: 1px solid var(--scr-line); white-space: nowrap; }
+  .grid th > span, .grid th button { display: inline-flex; align-items: center; gap: 4px; padding: 11px 20px; }
+  .grid th button { border: 0; background: none; cursor: pointer; color: inherit; font: inherit; border-radius: 6px; transition: color 160ms ease; }
+  .grid th.r button, .grid th.r > span { justify-content: flex-end; width: 100%; }
+  .grid th[aria-sort] button { color: var(--scr-text); }
+  .grid th svg { width: 10px; height: 10px; opacity: 0; transition: opacity 160ms ease, transform 240ms var(--ease-out); }
+  .grid th[aria-sort] svg { opacity: 1; }
+  .grid th[aria-sort="descending"] svg { transform: rotate(180deg); }
+  @media (hover: hover) and (pointer: fine) { .grid th button:hover { color: var(--scr-text); } .grid th button:hover svg { opacity: .5; } .grid th[aria-sort] button:hover svg { opacity: 1; } }
+  .grid td { padding: 0 20px; height: 52px; border-bottom: 1px solid color-mix(in srgb, var(--scr-line) 70%, transparent); white-space: nowrap; transition: background-color 160ms ease; }
+  .grid tbody tr { position: relative; outline: none; cursor: default; }
+  .grid tbody tr:last-child td { border-bottom: 0; }
+  .grid tbody tr.bad td { background: var(--scr-loss-fill); }
+  .grid tbody tr.capped td { background: transparent; }
+  .grid tbody tr.capped td:not(.act) { opacity: .45; }
+  .grid tbody tr:hover td, .grid tbody tr:focus-visible td, .grid tbody tr.tipped td { background: var(--scr-2); }
+  .grid tbody tr.bad:hover td, .grid tbody tr.bad:focus-visible td, .grid tbody tr.bad.tipped td { background: rgba(255, 69, 58, 0.17); }
+  .grid tbody tr:focus-visible td:first-child { box-shadow: inset 2px 0 0 var(--scr-text); }
   .grid .r { text-align: right; }
   .grid .id { font-family: var(--mono); font-size: 13px; letter-spacing: 0; }
-  .grid .tier { color: var(--text-2); }
-  .grid tr.bad td { background: var(--loss-fill); }
+  .grid .tier { color: var(--scr-text-2); }
   .grid .m { font-weight: 600; }
-  /* Diverging bar: loss grows left from the axis, profit grows right */
-  .bar { position: relative; display: inline-block; width: 72px; height: 6px; vertical-align: middle; margin-left: 12px; }
-  .bar::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--hairline); }
-  .bar i { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
-  .bar i.up { left: 50%; width: calc(var(--v) * 36px); background: var(--gain); }
-  .bar i.down { right: 50%; width: calc(var(--v) * 36px); background: var(--loss); }
-  .cap { display: inline-block; font: 500 12px/1 var(--sans); padding: 6px 12px; border-radius: 980px; background: var(--loss); color: #fff; letter-spacing: 0; }
-  @media (prefers-color-scheme: dark) { .cap { color: #000; } }
-  .window-foot { padding: 14px 24px 18px; font-size: 13px; color: var(--text-2); border-top: 1px solid var(--hairline); }
-  .window-foot b { color: var(--text); font-weight: 600; }
+  .grid .m.loss { color: var(--scr-loss); }
+  .grid .m.gain { color: var(--scr-gain); }
+  .grid .act { width: 1%; text-align: right; }
+  .mbar { position: relative; display: inline-block; width: 64px; height: 6px; margin-left: 12px; vertical-align: 1px; }
+  .mbar::before { content: ""; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1px; background: var(--scr-line); }
+  .mbar i { position: absolute; top: 0; bottom: 0; border-radius: 3px; width: 0; }
+  .mbar i.up { left: 50%; background: var(--scr-gain); }
+  .mbar i.down { right: 50%; background: var(--scr-loss); }
+
+  .cap {
+    display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 12px; border-radius: 8px; border: 0; cursor: pointer;
+    font-size: 12px; font-weight: 600; background: var(--scr-loss); color: #1a0503;
+    transition: transform 140ms var(--ease-out), background-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+  }
+  .cap:active { transform: scale(0.95); }
+  .cap[aria-pressed="true"] { background: var(--scr-3); color: var(--scr-text); box-shadow: inset 0 0 0 1px var(--scr-line); }
+  .cap svg { width: 12px; height: 12px; }
+
+  .app-foot { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 0 20px; height: 52px; border-top: 1px solid var(--scr-line); font-size: 12px; color: var(--scr-text-2); }
+  .toast {
+    position: absolute; left: 12px; right: 12px; top: 8px; bottom: 8px; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 0 6px 0 14px; border-radius: 10px;
+    background: #f5f5f7; color: #1d1d1f; font-size: 13px; white-space: nowrap; overflow: hidden;
+  }
+  .toast[hidden] { display: none; }
+  .toast span { overflow: hidden; text-overflow: ellipsis; }
+  .toast code { font-size: 12px; }
+  .toast button { flex: none; border: 0; cursor: pointer; background: #1d1d1f; color: #f5f5f7; font-size: 12px; font-weight: 600; padding: 7px 12px; border-radius: 7px; }
+
+  .tip {
+    position: absolute; z-index: 6; width: 268px; padding: 14px; border-radius: 14px; pointer-events: none;
+    background: color-mix(in srgb, var(--scr-3) 94%, transparent);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 18px 40px -10px rgba(0,0,0,.7);
+    font-size: 12px; color: var(--scr-text-2);
+  }
+  .tip[hidden] { display: none; }
+  .tip b { display: block; color: var(--scr-text); font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .tip .bars-mini { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin: 12px 0 10px; gap: 2px; }
+  .tip .bars-mini i { display: block; height: 100%; }
+  .tip ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+  .tip li { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
+  .tip li span:first-child { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11.5px; color: var(--scr-text); }
+  .tip li i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
+  .f1 { background: #ff6b60; } .f2 { background: #e5e5ea; } .f3 { background: #8e8e96; } .f4 { background: #55555c; }
 
   /* ---------- Statement ---------- */
-  .statement p { margin: 0; font-size: clamp(30px, 4.6vw, 52px); line-height: 1.12; letter-spacing: -0.03em; font-weight: 600; text-wrap: balance; }
-  .statement p + p { margin-top: 10px; }
+  .statement p { margin: 0; font-size: clamp(32px, 4.8vw, 56px); line-height: 1.1; letter-spacing: -0.035em; font-weight: 600; text-wrap: balance; max-width: 18em; }
+  .statement p + p { margin-top: 8px; }
   .statement .quiet { color: var(--text-2); }
+  .mark { position: relative; display: inline-block; color: var(--loss); margin: 0 0.22em; }
+  .mark svg { position: absolute; left: -18%; top: -24%; width: 136%; height: 150%; overflow: visible; pointer-events: none; }
+  .mark path { fill: none; stroke: var(--loss); stroke-width: 2.4; stroke-linecap: round; }
 
-  /* ---------- Features: text beside a real piece of the product ---------- */
-  .section-head { max-width: 760px; margin: 0 auto 96px; }
-  .section-head .lead { margin-top: 20px; }
-  .feature { display: grid; grid-template-columns: 5fr 6fr; gap: 72px; align-items: center; }
-  .feature + .feature { margin-top: 120px; }
-  .feature.flip .copy { order: 2; }
-  .feature .copy p { margin: 16px 0 0; color: var(--text-2); max-width: 26em; }
-  .stage { background: var(--bg-alt); border-radius: 28px; padding: 40px; min-width: 0; }
-  .alt .stage { background: var(--fill); }
+  /* ---------- Feature explorer ---------- */
+  .head-row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 56px; align-items: end; margin-bottom: 72px; }
+  .explorer { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 48px; align-items: start; }
+  .tabs { position: relative; display: grid; gap: 2px; padding-left: 20px; }
+  .tabs::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; border-radius: 2px; background: var(--hairline); }
+  .tab-ind { position: absolute; left: 0; top: 0; width: 2px; height: 0; border-radius: 2px; background: var(--text); }
+  .tab { display: block; width: 100%; text-align: left; border: 0; background: none; cursor: pointer; padding: 16px 0; border-radius: 8px; }
+  .tab h3 { color: var(--text-2); transition: color 200ms ease; }
+  .tab[aria-selected="true"] h3 { color: var(--text); }
+  .tab p { margin: 0; overflow: hidden; height: 0; opacity: 0; color: var(--text-2); font-size: 15px; line-height: 1.47; }
+  .tab[aria-selected="true"] p { height: auto; opacity: 1; }
+  .tab p span { display: block; padding-top: 8px; }
+  @media (hover: hover) and (pointer: fine) { .tab:hover h3 { color: var(--text); } }
 
-  .bars { display: grid; gap: 18px; }
-  .bars div { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .stage { position: relative; background: var(--fill); border-radius: 24px; padding: 32px; min-height: 440px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--hairline) 60%, transparent), 0 24px 60px -30px rgba(0,0,0,.25); }
+  .panel[hidden] { display: none; }
+  .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+  .panel-head b { font-size: 15px; font-weight: 600; letter-spacing: -0.015em; }
+  .panel-note { margin: 24px 0 0; font-size: 14px; color: var(--text-2); }
+  .panel-note strong { color: var(--text); font-weight: 600; }
+
+  .bars { display: grid; gap: 20px; }
+  .bars > div { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; font-size: 15px; font-variant-numeric: tabular-nums; }
   .bars span:first-child { font-family: var(--mono); font-size: 13px; letter-spacing: 0; }
   .bars span:nth-child(2) { font-weight: 600; }
-  .bars i { grid-column: 1 / -1; height: 8px; border-radius: 4px; background: var(--text); opacity: .85; width: var(--w); transform-origin: left; }
-  .bars div:first-child i { background: var(--loss); opacity: 1; }
+  .bars i { grid-column: 1 / -1; height: 10px; border-radius: 5px; background: var(--text); width: 100%; transform-origin: left; transform: scaleX(0); }
+  .bars > div.hot i { background: var(--loss); }
 
-  .notice {
-    background: color-mix(in srgb, var(--bg-alt) 70%, transparent);
-    -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
-    border-radius: 18px; padding: 14px 16px; box-shadow: 0 8px 28px -10px rgba(0,0,0,.18), 0 0 0 1px color-mix(in srgb, var(--hairline) 50%, transparent);
-    font-size: 15px; line-height: 1.33;
-  }
-  /* An older alert peeks out underneath, like a stacked notification group */
-  .stack { position: relative; isolation: isolate; padding-bottom: 12px; }
-  .stack::after {
-    content: ""; position: absolute; z-index: -1; left: 14px; right: 14px; bottom: 0; height: 40px;
-    border-radius: 16px; background: color-mix(in srgb, var(--bg-alt) 70%, transparent);
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--hairline) 50%, transparent);
-  }
-  .notice header { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-2); margin-bottom: 4px; }
-  .notice b { display: block; font-weight: 600; }
-  .notice p { margin: 2px 0 0; color: var(--text-2); }
+  .range-row { display: grid; gap: 12px; margin-bottom: 24px; }
+  .range-row label { font-size: 15px; color: var(--text-2); }
+  .range-row output { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; }
+  input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--text) var(--p, 50%), var(--hairline) var(--p, 50%)); }
+  input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: var(--hairline); }
+  input[type=range]::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--text); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; margin-top: -9px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25), 0 0 0 .5px rgba(0,0,0,.08); transition: transform 140ms var(--ease-out); }
+  input[type=range]:active::-webkit-slider-thumb { transform: scale(1.12); }
+  input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  input[type=range]:focus-visible { outline: none; }
+  input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--fill), 0 0 0 5px var(--text); }
 
-  pre.code, .payload {
-    margin: 0; background: var(--code-bg); color: var(--code-text);
-    border-radius: 18px; padding: 24px; font-size: 14px; line-height: 1.6; letter-spacing: 0;
-    overflow-x: auto; white-space: pre;
-  }
-  @media (prefers-color-scheme: dark) { pre.code, .payload { background: #000; box-shadow: 0 0 0 1px var(--hairline); } }
-  .code .c, .payload .c { color: var(--code-dim); }
-  .code .s, .payload .s { color: #7ee2a8; }
-  .code .k { color: #ff9fd0; }
-  .code .f { color: #8fc7ff; }
-  .payload .x { color: #ff8a80; text-decoration: line-through; }
+  .alerts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; align-content: start; }
+  .alerts li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--bg-alt); font-size: 14px; }
+  .alerts li b { font-family: var(--mono); font-size: 13px; font-weight: 500; letter-spacing: 0; }
+  .alerts li span { color: var(--text-2); }
+  .alerts li .ratio { font-weight: 600; color: var(--loss); font-variant-numeric: tabular-nums; }
+  .alerts-box { min-height: 236px; }
+  .empty { display: grid; place-items: center; align-content: center; text-align: center; gap: 4px; min-height: 236px; padding: 24px; border-radius: 14px; border: 1px dashed var(--hairline); color: var(--text-2); font-size: 14px; }
+  .empty[hidden] { display: none; }
+  .empty b { color: var(--text); font-weight: 600; font-size: 15px; }
 
-  /* ---------- How it works ---------- */
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 72px; }
-  .step { border-top: 1px solid var(--hairline); padding-top: 24px; min-width: 0; }
-  .step-n { font-size: 15px; font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums; }
-  .step h3 { font-size: 21px; letter-spacing: -0.018em; margin: 10px 0 8px; }
-  .step p { margin: 0; color: var(--text-2); }
-  .step code { display: block; margin-top: 14px; font-size: 13px; color: var(--text); white-space: pre-wrap; }
+  .budget { display: grid; gap: 18px; }
+  .budget-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .budget-top .id { font-family: var(--mono); font-size: 13px; color: var(--text-2); }
+  .budget-top .amt { font-size: 30px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .budget-top .amt small { font-size: 15px; font-weight: 400; color: var(--text-2); letter-spacing: -0.01em; }
+  .meter { position: relative; height: 12px; border-radius: 6px; background: var(--bg-alt); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hairline) 60%, transparent); overflow: hidden; }
+  .meter i { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; border-radius: 6px; background: var(--text); transform-origin: left; transform: scaleX(0); transition: background-color 240ms ease; }
+  .meter[data-v="warn"] i { background: #b25000; }
+  .meter[data-v="block"] i { background: var(--loss); }
+  .meter::after { content: ""; position: absolute; left: 80%; top: 0; bottom: 0; width: 1.5px; background: var(--fill); }
+  .scale { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); margin-top: -8px; }
+  .verdict-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 12px; background: #111113; color: #f5f5f7; font: 13px/1.4 var(--mono); letter-spacing: 0; flex-wrap: wrap; }
+  .verdict-line .c { color: #8e8e96; }
+  .verdict { display: inline-block; min-width: 68px; text-align: center; padding: 3px 9px; border-radius: 6px; font-weight: 600; }
+  .verdict[data-v="allow"] { background: rgba(48,209,88,.16); color: #30d158; }
+  .verdict[data-v="warn"] { background: rgba(255,159,10,.16); color: #ffb340; }
+  .verdict[data-v="block"] { background: rgba(255,69,58,.18); color: #ff6b60; }
+  .budget-actions { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  .budget-actions .btn { min-height: 44px; font-size: 15px; padding: 0 18px; border-radius: 12px; }
+  .budget-actions .btn:disabled { background: var(--bg-alt); color: var(--text-2); cursor: default; box-shadow: inset 0 0 0 1px var(--hairline); transform: none; }
+  .textbtn { border: 0; background: none; cursor: pointer; color: var(--text-2); font-size: 15px; padding: 8px 0; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hairline); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .compare > div { border-radius: 14px; padding: 18px; font: 12.5px/1.65 var(--mono); letter-spacing: 0; white-space: pre-wrap; word-break: break-word; min-width: 0; }
+  .compare .theirs { background: var(--bg-alt); color: var(--text-2); }
+  .compare .ours { background: #111113; color: #f5f5f7; }
+  .compare .cap-l { display: block; font: 600 12px/1 var(--sans); letter-spacing: -0.005em; margin-bottom: 12px; white-space: normal; }
+  .compare .theirs .cap-l { color: var(--text); }
+  .compare .gone { background: color-mix(in srgb, var(--loss) 14%, transparent); color: var(--loss); border-radius: 3px; text-decoration: line-through; text-decoration-thickness: 1px; }
+  .compare .k { color: #8fc7ff; }
+  .compare .s { color: #7ee2a8; }
+  .compare .n { color: #8e8e96; }
+
+  /* ---------- Steps ---------- */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 72px; border-top: 1px solid var(--hairline); }
+  .step { padding: 28px 32px 0 0; min-width: 0; }
+  .step + .step { padding-left: 32px; border-left: 1px solid var(--hairline); }
+  .step h3 { margin: 18px 0 8px; }
+  .step p { margin: 0; color: var(--text-2); font-size: 16px; }
+  .snippet { margin-top: 18px; padding: 10px 14px; border-radius: 12px; background: var(--bg-alt); }
+  .snippet code { font-size: 12.5px; line-height: 1.5; white-space: pre-wrap; min-width: 0; }
+  .copy { flex: none; display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; border: 0; cursor: pointer; background: var(--fill); color: var(--text-2); box-shadow: 0 0 0 1px color-mix(in srgb, var(--hairline) 70%, transparent); transition: color 160ms ease, transform 140ms var(--ease-out); }
+  .copy:active { transform: scale(.92); }
+  .copy svg { width: 15px; height: 15px; grid-area: 1 / 1; transition: opacity 160ms ease, transform 260ms var(--ease-out); }
+  .copy .ok { opacity: 0; transform: scale(.6); color: var(--gain); }
+  .copy.done .ok { opacity: 1; transform: none; }
+  .copy.done .cp { opacity: 0; transform: scale(.6); }
+  @media (hover: hover) and (pointer: fine) { .copy:hover { color: var(--text); } }
 
   /* ---------- Pricing ---------- */
-  .plans { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 72px; }
-  .plan { padding: 0 32px; border-left: 1px solid var(--hairline); }
+  .plans { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 72px; border-top: 1px solid var(--hairline); }
+  .plan { position: relative; padding: 28px 28px 32px; border-left: 1px solid var(--hairline); }
   .plan:first-child { border-left: 0; padding-left: 0; }
-  .plan h3 { font-size: 21px; letter-spacing: -0.018em; }
-  .price { font-size: 48px; font-weight: 600; letter-spacing: -0.035em; line-height: 1; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+  .plan h3 { font-size: 17px; color: var(--text-2); font-weight: 500; }
+  .price { font-size: 52px; font-weight: 600; letter-spacing: -0.04em; line-height: 1; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
   .price small { font-size: 17px; font-weight: 400; letter-spacing: -0.016em; color: var(--text-2); }
-  .plan ul { list-style: none; padding: 0; margin: 24px 0 0; font-size: 15px; letter-spacing: -0.01em; }
-  .plan li { padding: 9px 0; border-top: 1px solid color-mix(in srgb, var(--hairline) 60%, transparent); color: var(--text-2); }
+  .plan ul { list-style: none; padding: 0; margin: 26px 0 0; font-size: 15px; display: grid; gap: 10px; }
+  .plan li { color: var(--text-2); padding-left: 20px; position: relative; }
+  .plan li::before { content: ""; position: absolute; left: 0; top: .66em; width: 8px; height: 1.5px; background: var(--text-2); }
   .plan li b { color: var(--text); font-weight: 600; }
 
-  /* The one emphasised offer is the inverse surface, not a badge */
   .founding {
-    margin-top: 80px; display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: end;
-    background: var(--text); color: var(--bg); border-radius: 28px; padding: 48px;
+    margin-top: 72px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 48px; align-items: end;
+    background: var(--scr); color: var(--scr-text); border-radius: 24px; padding: 44px 48px;
+    box-shadow: 0 1px 0 0 rgba(255,255,255,.06) inset;
   }
-  .founding .label { font-size: 15px; font-weight: 600; opacity: .7; margin: 0 0 10px; }
-  .founding h3 { font-size: clamp(26px, 3.2vw, 34px); letter-spacing: -0.025em; max-width: 18em; }
-  .founding p { margin: 16px 0 0; font-size: 15px; line-height: 1.47; opacity: .78; max-width: 38em; }
-  .founding p.label { margin: 0 0 10px; }
-  .founding p a { color: inherit; }
-  .founding .btn { background: var(--bg); color: var(--text); }
-  .founding :focus-visible { outline-color: var(--bg); }
+  .founding .label { margin: 0 0 12px; font: 500 13px/1 var(--mono); color: var(--scr-text-2); letter-spacing: 0; }
+  .founding h3 { font-size: clamp(26px, 3.2vw, 36px); letter-spacing: -0.03em; line-height: 1.1; max-width: 17em; }
+  .founding p { margin: 16px 0 0; font-size: 15px; line-height: 1.5; color: var(--scr-text-2); max-width: 40em; }
+  .founding p.label { margin: 0 0 12px; }
+  .founding p b { color: var(--scr-text); font-weight: 600; }
+  .founding p a { color: var(--scr-text); }
+  .founding .btn { background: var(--scr-text); color: var(--scr); }
+  .founding :focus-visible { outline-color: var(--scr-text); }
 
   /* ---------- FAQ ---------- */
-  .faq { max-width: 760px; margin: 64px auto 0; border-top: 1px solid var(--hairline); }
+  .faq-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 56px; align-items: start; }
+  .faq { border-top: 1px solid var(--hairline); }
   details { border-bottom: 1px solid var(--hairline); }
-  summary {
-    cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 24px;
-    padding: 22px 0; font-size: 19px; font-weight: 600; letter-spacing: -0.02em;
-  }
+  summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 22px 0; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; border-radius: 6px; }
   summary::-webkit-details-marker { display: none; }
-  summary svg { flex: none; width: 14px; height: 14px; color: var(--text-2); transition: transform 240ms var(--ease-out); }
-  details[open] summary svg { transform: rotate(180deg); }
-  details p { margin: -6px 0 0; padding-bottom: 24px; color: var(--text-2); max-width: 36em; }
-  details[open] p { animation: answer-in 240ms var(--ease-out); }
-  @keyframes answer-in { from { opacity: 0; transform: translateY(-6px); } }
+  summary .pm { position: relative; flex: none; width: 14px; height: 14px; }
+  summary .pm::before, summary .pm::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1.5px; margin-top: -.75px; background: var(--text-2); border-radius: 1px; transition: transform 300ms var(--ease-out), background-color 160ms ease; }
+  summary .pm::after { transform: rotate(90deg); }
+  details[open] summary .pm::after { transform: rotate(0deg); }
+  .answer { overflow: hidden; }
+  .answer p { margin: 0; padding-bottom: 24px; color: var(--text-2); max-width: 36em; }
+  @media (hover: hover) and (pointer: fine) { summary:hover .pm::before, summary:hover .pm::after { background: var(--text); } }
 
   /* ---------- Waitlist ---------- */
-  .final h2 { max-width: 14ch; margin: 0 auto; }
+  .final-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 56px; align-items: end; }
+  .final h2 { max-width: 13ch; }
   .final .lead { margin-top: 20px; }
-  form.waitlist { display: flex; gap: 10px; max-width: 460px; margin: 40px auto 0; }
-  /* 17px: anything under 16px makes iOS Safari zoom on focus */
+  form.waitlist { display: flex; gap: 10px; }
   form.waitlist input[type=email] {
-    flex: 1; min-width: 0; min-height: 48px; padding: 0 20px; border-radius: 980px;
+    flex: 1; min-width: 0; min-height: 50px; padding: 0 18px; border-radius: 14px;
     border: 1px solid var(--hairline); background: var(--bg); color: var(--text);
-    font: 17px var(--sans); letter-spacing: -0.016em; transition: border-color 150ms ease;
+    font: 17px var(--sans); letter-spacing: -0.016em; transition: border-color 160ms ease, box-shadow 160ms ease;
   }
   form.waitlist input::placeholder { color: var(--text-2); }
-  form.waitlist input:focus { outline: none; border-color: var(--text); box-shadow: 0 0 0 3px color-mix(in srgb, var(--text) 14%, transparent); }
-  .form-msg { min-height: 24px; margin-top: 14px; font-size: 15px; color: var(--text-2); }
+  form.waitlist input:focus { outline: none; border-color: var(--text); box-shadow: 0 0 0 4px color-mix(in srgb, var(--text) 12%, transparent); }
+  form.waitlist input[aria-invalid="true"] { border-color: var(--loss); box-shadow: 0 0 0 4px color-mix(in srgb, var(--loss) 14%, transparent); }
+  form.waitlist .btn { min-width: 172px; }
+  .btn .state { display: inline-flex; align-items: center; gap: 8px; }
+  .btn .state[hidden] { display: none; }
+  .btn .state svg { width: 18px; height: 18px; }
+  .btn.is-done { background: var(--gain); color: #fff; }
+  @media (prefers-color-scheme: dark) { .btn.is-done { color: #000; } }
+  .form-msg { min-height: 22px; margin-top: 12px; font-size: 15px; color: var(--text-2); }
   .form-msg.ok { color: var(--gain); }
   .form-msg.err { color: var(--loss); }
-  .form-msg.show { animation: msg-in 200ms var(--ease-out); }
-  @keyframes msg-in { from { opacity: 0; transform: translateY(-4px); } }
-  .consent { max-width: 460px; margin: 6px auto 0; font-size: 13px; line-height: 1.4; color: var(--text-2); }
-  .or-preorder { margin-top: 28px; }
+  .consent { margin: 4px 0 0; font-size: 13px; line-height: 1.45; color: var(--text-2); }
+  .or-preorder { margin: 24px 0 0; }
 
-  .skip { position: absolute; left: 12px; top: -60px; z-index: 30; background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: 980px; font-weight: 500; text-decoration: none; }
+  .skip { position: absolute; left: 12px; top: -60px; z-index: 30; background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: 12px; font-weight: 500; text-decoration: none; }
   .skip:focus { top: 12px; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .hp { position: absolute; left: -9999px; }
 
-  /* Post-payment banner (Stripe redirects back with ?preorder=thanks): a material that arrives, not a box that fades */
   .thanks {
-    position: fixed; z-index: 20; left: 50%; top: calc(64px + env(safe-area-inset-top));
-    width: min(520px, calc(100% - 32px));
-    display: flex; gap: 12px; align-items: flex-start;
-    background: color-mix(in srgb, var(--fill) 78%, transparent);
+    position: fixed; z-index: 30; left: 50%; top: calc(68px + env(safe-area-inset-top));
+    width: min(520px, calc(100% - 32px)); display: flex; gap: 12px; align-items: flex-start;
+    background: color-mix(in srgb, var(--fill) 80%, transparent);
     -webkit-backdrop-filter: saturate(180%) blur(24px); backdrop-filter: saturate(180%) blur(24px);
-    border-radius: 20px; padding: 16px 18px; font-size: 15px; line-height: 1.4;
+    border-radius: 18px; padding: 16px 18px; font-size: 15px; line-height: 1.4;
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--hairline) 60%, transparent), 0 20px 50px -12px rgba(0,0,0,.3);
-    transform: translateX(-50%); opacity: 1;
-    transition: transform 320ms var(--ease-out), opacity 320ms var(--ease-out);
+    transform: translateX(-50%); transition: transform 320ms var(--ease-out), opacity 320ms var(--ease-out);
   }
   .thanks[hidden] { display: none; }
   .thanks.out { opacity: 0; transform: translate(-50%, -10px) scale(.97); transition-duration: 180ms; }
@@ -352,83 +491,72 @@
   footer .tm { flex-basis: 100%; padding-top: 16px; border-top: 1px solid var(--hairline); }
   @media (hover: hover) and (pointer: fine) { footer a:hover { text-decoration: underline; } }
 
-  /* Continuous corners where supported */
-  @supports (corner-shape: squircle) {
-    .window, .stage, .founding, .notice, .stack::after, .thanks, pre.code, .payload { corner-shape: squircle; }
-    .window { border-radius: 34px; } .stage, .founding { border-radius: 42px; } .notice, pre.code, .payload, .thanks { border-radius: 28px; }
-  }
+  .motion [data-reveal] { opacity: 0; }
 
-  /* Accessibility preferences: frostier glass, firmer edges */
+  @supports (corner-shape: squircle) {
+    .app, .stage, .founding, .btn, .seg, .snippet, .compare > div, .alerts li, .tip, .thanks, form.waitlist input[type=email] { corner-shape: squircle; }
+    .app { border-radius: 30px; } .stage, .founding { border-radius: 36px; } .btn, form.waitlist input[type=email] { border-radius: 20px; }
+  }
   @media (prefers-reduced-transparency: reduce) {
-    nav, .thanks, .notice { background: var(--fill); -webkit-backdrop-filter: none; backdrop-filter: none; }
-    nav { background: var(--bg); }
+    nav { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; }
+    .tip { background: var(--scr-3); -webkit-backdrop-filter: none; backdrop-filter: none; }
+    .thanks { background: var(--fill); -webkit-backdrop-filter: none; backdrop-filter: none; }
   }
   @media (prefers-contrast: more) {
-    :root { --text-2: var(--text); }
+    :root { --text-2: var(--text); --scr-text-2: var(--scr-text); }
     nav { background: var(--bg); box-shadow: 0 1px 0 var(--text); }
-    .window, .thanks, .notice { box-shadow: 0 0 0 1px var(--text); }
   }
-
-  /* ---------- Motion ----------
-     Two moments only: the product shot arrives, then the money-losers turn red (that is the pitch).
-     Everything else appears once on scroll, opacity + a short rise, and never blocks input. */
-  .js .hero-in > * { opacity: 0; transform: translateY(10px); animation: rise 700ms var(--ease-out) forwards; }
-  .js .hero-in > :nth-child(2) { animation-delay: 60ms; }
-  .js .hero-in > :nth-child(3) { animation-delay: 120ms; }
-  .js .hero-in > :nth-child(n+4) { animation-delay: 180ms; }
-  .js .shot { opacity: 0; transform: translateY(40px) scale(.97); animation: rise 1000ms var(--ease-out) 250ms forwards; }
-  .js .grid tr.bad td { animation: flag 600ms ease 1300ms both; }
-  .js .grid .cap { opacity: 0; transform: scale(.9); animation: rise 260ms var(--ease-out) 1700ms forwards; }
-  @keyframes rise { to { opacity: 1; transform: none; } }
-  @keyframes flag { from { background: transparent; } }
-  .js .reveal { opacity: 0; transform: translateY(24px); transition: opacity 800ms var(--ease-out), transform 800ms var(--ease-out); }
-  .js .reveal.in { opacity: 1; transform: none; }
-  .js .bars i { transform: scaleX(0); transition: transform 900ms var(--ease-out) 200ms; }
-  .js .in .bars i { transform: none; }
-  .js .in .bars div:nth-child(2) i { transition-delay: 260ms; }
-  .js .in .bars div:nth-child(3) i { transition-delay: 320ms; }
-  .js .in .bars div:nth-child(4) i { transition-delay: 380ms; }
-
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .js .hero-in > *, .js .shot, .js .grid .cap { transform: none; animation: fade 300ms ease forwards; }
-    .js .grid tr.bad td { animation: none; }
-    .js .reveal { transform: none; transition: opacity 300ms ease; }
-    .js .bars i { transform: none; transition: none; }
-    .btn:active { transform: none; }
-    .more .chev, summary svg { transition: none; }
-    details[open] p, .form-msg.show { animation: none; }
+    ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+    .btn:active, .cap:active, .copy:active { transform: none; }
     .thanks, .thanks.out { transform: translateX(-50%); }
     @starting-style { .thanks { transform: translateX(-50%); } }
   }
-  @keyframes fade { to { opacity: 1; } }
 
-  @media (max-width: 900px) {
-    section { padding: 88px 0; }
-    .hero { padding-top: 64px; }
-    .section-head { margin-bottom: 64px; }
-    .feature { grid-template-columns: 1fr; gap: 32px; }
-    .feature.flip .copy { order: 0; }
-    .feature + .feature { margin-top: 80px; }
-    .steps { grid-template-columns: 1fr; gap: 32px; margin-top: 48px; }
-    .plans { grid-template-columns: 1fr; gap: 40px; margin-top: 48px; }
-    .plan, .plan:first-child { border-left: 0; padding: 0; }
-    .founding { grid-template-columns: 1fr; padding: 32px 28px; margin-top: 56px; gap: 28px; }
+  @media (max-width: 960px) {
+    section { padding: 96px 0; }
+    .hero { padding-top: 56px; }
+    .hero-top, .head-row, .faq-grid, .final-grid { grid-template-columns: 1fr; gap: 28px; }
+    .head-row { margin-bottom: 40px; }
+    .explorer { grid-template-columns: 1fr; gap: 20px; }
+    .tabs { display: flex; gap: 6px; padding: 2px 2px 4px; margin: 0 -2px; overflow-x: auto; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tabs::before, .tab-ind { display: none; }
+    .tab { flex: none; width: auto; padding: 9px 14px; border-radius: 10px; background: var(--fill); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hairline) 70%, transparent); transition: background-color 200ms ease; }
+    .tab[aria-selected="true"] { background: var(--text); }
+    .tab[aria-selected="true"] h3 { color: var(--bg); }
+    .tab h3 { font-size: 14px; white-space: nowrap; letter-spacing: -0.01em; }
+    .tab p, .tab[aria-selected="true"] p { display: none; }
+    .stage { padding: 24px; min-height: 0; }
+    .steps, .plans { grid-template-columns: 1fr; }
+    .step, .step + .step { padding: 24px 0; border-left: 0; border-bottom: 1px solid var(--hairline); }
+    .plan, .plan:first-child { padding: 28px 0; border-left: 0; border-bottom: 1px solid var(--hairline); }
+    .founding { grid-template-columns: 1fr; padding: 32px 28px; gap: 28px; margin-top: 56px; }
     .founding .btn { justify-self: start; }
-    .nav-links a:not(.btn) { display: none; }
+    .nav-links a:not(.btn), .nav-pill { display: none; }
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .kpi:nth-child(3) { border-left: 0; }
+    .kpi:nth-child(n+3) { border-top: 1px solid var(--scr-line); }
   }
-  @media (max-width: 600px) {
+  @media (max-width: 640px) {
     .wrap { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
-    .stage { padding: 24px 20px; border-radius: 24px; }
-    .shot { margin-top: 56px; }
-    .window-head { padding: 16px 16px 12px; }
-    .grid th, .grid td { padding-left: 16px; padding-right: 16px; }
-    .grid td { padding-top: 12px; padding-bottom: 12px; }
-    .hide-sm { display: none; }
-    .cta-row { flex-direction: column; gap: 20px; }
-    .cta-row .btn { width: 100%; }
+    .app-wrap { margin-top: 48px; margin-left: -6px; margin-right: -6px; }
+    .app { border-radius: 18px; }
+    .app-bar { padding: 14px; }
+    .kpi { padding: 14px; }
+    .kpi dd { font-size: 23px; }
+    .grid th > span, .grid th button { padding: 10px 12px; }
+    .grid td { padding: 0 12px; height: 50px; }
+    .hide-sm, .mbar { display: none; }
+    .app-foot { padding: 0 14px; }
+    .app-foot .hint { display: none; }
+    .cta-row { gap: 22px; }
     form.waitlist { flex-direction: column; }
-    pre.code, .payload { font-size: 12.5px; padding: 20px; }
+    form.waitlist .btn { width: 100%; }
+    .compare { grid-template-columns: 1fr; }
+    .stage { padding: 20px; border-radius: 20px; }
+    .tip { width: min(268px, calc(100vw - 48px)); }
   }
 </style>
 </head>
@@ -439,8 +567,9 @@
   <div class="wrap">
     <a href="#" class="wordmark" aria-label="MarginCap home">MarginCap</a>
     <div class="nav-links">
+      <span class="nav-pill" aria-hidden="true"></span>
       <a href="#features">Features</a>
-      <a href="#how">How it works</a>
+      <a href="#how">Setup</a>
       <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
       <a href="#waitlist" class="btn btn-sm">Get early access</a>
@@ -456,109 +585,169 @@
 <main id="main" tabindex="-1">
 <header class="hero">
   <div class="wrap">
-    <div class="hero-in">
-      <p class="product-name">MarginCap</p>
+    <div class="hero-top">
       <h1>Your AI bill, split by customer.</h1>
-      <p class="lead">MarginCap joins your LLM spend with your Stripe revenue, so you can see what every customer earns you — and cap the ones who cost more than they pay.</p>
-      <div class="cta-row">
-        <a href="#waitlist" class="btn">Get early access</a>
-        <a href="#" class="more js-preorder">Pre-order for $19/mo <span class="chev" aria-hidden="true">›</span></a>
+      <div class="hero-side">
+        <p class="lead">MarginCap joins your LLM spend with your Stripe revenue. You see what every customer actually earns you, and you can cap the ones who cost more than they pay.</p>
+        <div class="cta-row">
+          <a href="#waitlist" class="btn">Get early access</a>
+          <a href="#" class="link js-preorder">Pre-order at $19/mo <span class="arr" aria-hidden="true">→</span></a>
+        </div>
       </div>
-      <p class="fine">In development. OpenAI, Anthropic, OpenRouter and Gemini at launch, TypeScript SDK first. Never sees your prompts.</p>
     </div>
 
-    <div class="shot">
-      <div class="window" role="img" aria-label="Example MarginCap dashboard: two of five customers have negative margin and are flagged to cap">
-        <div class="window-head"><b>Margin by customer</b><span>Last 30 days · <span class="loss">2 losing money</span></span></div>
-        <table class="grid">
-          <thead><tr><th>Customer</th><th class="hide-sm">Plan</th><th class="r hide-sm">Revenue</th><th class="r">AI cost</th><th class="r">Margin</th><th><span class="sr-only">Action</span></th></tr></thead>
-          <tbody>
-            <tr class="bad"><td class="id">cus_8fK2…</td><td class="tier hide-sm">Pro</td><td class="r hide-sm">$29.00</td><td class="r">$64.10</td><td class="r m loss">−121%<span class="bar hide-sm"><i class="down" style="--v:1"></i></span></td><td class="r"><span class="cap">Cap</span></td></tr>
-            <tr class="bad"><td class="id">cus_Q1xa…</td><td class="tier hide-sm">Team</td><td class="r hide-sm">$49.00</td><td class="r">$52.80</td><td class="r m loss">−8%<span class="bar hide-sm"><i class="down" style="--v:.08"></i></span></td><td class="r"><span class="cap">Cap</span></td></tr>
-            <tr><td class="id">cus_3mPz…</td><td class="tier hide-sm">Business</td><td class="r hide-sm">$99.00</td><td class="r">$18.40</td><td class="r m gain">81%<span class="bar hide-sm"><i class="up" style="--v:.81"></i></span></td><td></td></tr>
-            <tr><td class="id">cus_Lr7d…</td><td class="tier hide-sm">Pro</td><td class="r hide-sm">$29.00</td><td class="r">$2.15</td><td class="r m gain">93%<span class="bar hide-sm"><i class="up" style="--v:.93"></i></span></td><td></td></tr>
-            <tr><td class="id">cus_Wb0e…</td><td class="tier hide-sm">Pro</td><td class="r hide-sm">$29.00</td><td class="r">$0.88</td><td class="r m gain">97%<span class="bar hide-sm"><i class="up" style="--v:.97"></i></span></td><td></td></tr>
-          </tbody>
-        </table>
-        <div class="window-foot"><b>7% of customers</b> account for 51% of your AI spend. Example data.</div>
+    <div class="app-wrap" data-reveal>
+      <div class="app" id="demo" role="region" aria-label="Interactive example of the MarginCap dashboard">
+        <div class="app-bar">
+          <div class="app-title"><b>Margin by customer</b><span>Example data</span></div>
+          <div class="controls">
+            <div class="seg" role="radiogroup" aria-label="Period" data-seg="period">
+              <span class="seg-thumb" aria-hidden="true"></span>
+              <button type="button" role="radio" aria-checked="true" data-v="30">30 days</button>
+              <button type="button" role="radio" aria-checked="false" data-v="7" tabindex="-1">7 days</button>
+            </div>
+            <div class="seg" role="radiogroup" aria-label="Show" data-seg="filter">
+              <span class="seg-thumb" aria-hidden="true"></span>
+              <button type="button" role="radio" aria-checked="true" data-v="all">All</button>
+              <button type="button" role="radio" aria-checked="false" data-v="losing" tabindex="-1">Losing money</button>
+            </div>
+          </div>
+        </div>
+
+        <dl class="kpis">
+          <div class="kpi"><dt>Revenue</dt><dd class="num" data-kpi="rev">$412</dd></div>
+          <div class="kpi"><dt>AI cost</dt><dd class="num" data-kpi="cost">$173.93</dd></div>
+          <div class="kpi"><dt>Margin</dt><dd class="num gain" data-kpi="margin">58%</dd></div>
+          <div class="kpi"><dt>Losing money</dt><dd class="num loss"><span data-kpi="losing">2</span><small data-kpi="losing-note">customers, not capped</small></dd></div>
+        </dl>
+
+        <div class="table-scroll">
+          <table class="grid">
+            <thead>
+              <tr>
+                <th scope="col"><span>Customer</span></th>
+                <th scope="col" class="hide-sm"><span>Plan</span></th>
+                <th scope="col" class="r hide-sm"><button type="button" data-sort="rev">Revenue <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 2v6M2.5 5.5 5 8l2.5-2.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+                <th scope="col" class="r"><button type="button" data-sort="cost">AI cost <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 2v6M2.5 5.5 5 8l2.5-2.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+                <th scope="col" class="r" aria-sort="ascending"><button type="button" data-sort="margin">Margin <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 2v6M2.5 5.5 5 8l2.5-2.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+                <th scope="col" class="act"><span class="sr-only">Cap</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="bad"><td class="id">cus_8fK2…</td><td class="tier hide-sm">Pro</td><td class="r hide-sm">$29.00</td><td class="r">$64.10</td><td class="r m loss">−121%</td><td class="act"></td></tr>
+              <tr class="bad"><td class="id">cus_Q1xa…</td><td class="tier hide-sm">Team</td><td class="r hide-sm">$49.00</td><td class="r">$52.80</td><td class="r m loss">−8%</td><td class="act"></td></tr>
+              <tr><td class="id">cus_T9ve…</td><td class="tier hide-sm">Pro</td><td class="r hide-sm">$29.00</td><td class="r">$24.60</td><td class="r m gain">15%</td><td class="act"></td></tr>
+              <tr><td class="id">cus_3mPz…</td><td class="tier hide-sm">Business</td><td class="r hide-sm">$99.00</td><td class="r">$18.40</td><td class="r m gain">81%</td><td class="act"></td></tr>
+              <tr><td class="id">cus_Hn42…</td><td class="tier hide-sm">Team</td><td class="r hide-sm">$49.00</td><td class="r">$7.90</td><td class="r m gain">84%</td><td class="act"></td></tr>
+              <tr><td class="id">cus_Lr7d…</td><td class="tier hide-sm">Pro</td><td class="r hide-sm">$29.00</td><td class="r">$2.15</td><td class="r m gain">93%</td><td class="act"></td></tr>
+              <tr><td class="id">cus_Zq5c…</td><td class="tier hide-sm">Business</td><td class="r hide-sm">$99.00</td><td class="r">$3.10</td><td class="r m gain">97%</td><td class="act"></td></tr>
+              <tr><td class="id">cus_Wb0e…</td><td class="tier hide-sm">Pro</td><td class="r hide-sm">$29.00</td><td class="r">$0.88</td><td class="r m gain">97%</td><td class="act"></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="app-foot">
+          <span class="hint">Hover a customer to see which features drove their cost.</span>
+          <span>Stripe revenue · OpenAI + Anthropic usage</span>
+          <div class="toast" role="status" aria-live="polite" hidden><span></span><button type="button">Undo</button></div>
+        </div>
+        <div class="tip" role="tooltip" id="tip" hidden></div>
       </div>
+      <p class="fine">In development. OpenAI, Anthropic, OpenRouter and Gemini at launch, TypeScript SDK first. The table above runs on example data.</p>
     </div>
   </div>
 </header>
 
 <section class="statement">
-  <div class="wrap center reveal">
+  <div class="wrap" data-reveal>
     <p>You charge $29 a month.</p>
-    <p>One customer just used <span class="loss">$64</span> in tokens.</p>
+    <p>One customer just used <span class="mark">$64<svg viewBox="0 0 100 50" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M10 31C6 14 38 4 68 6c22 2 30 16 22 28-10 14-52 16-70 9C6 38 4 28 20 17"/></svg></span> in tokens.</p>
     <p class="quiet">Your OpenAI dashboard can’t tell you which one.</p>
   </div>
 </section>
 
 <section id="features" class="alt">
   <div class="wrap">
-    <div class="section-head center reveal">
+    <div class="head-row" data-reveal>
       <h2>Know who’s profitable. Stop who isn’t.</h2>
       <p class="lead">Revenue minus AI cost for every Stripe customer, the features behind it, and a way to stop the bleeding before the invoice arrives.</p>
     </div>
 
-    <div class="feature">
-      <div class="copy reveal">
-        <h3>Cost per feature.</h3>
-        <p>Tag each call with the feature that made it. Then see whether it’s summarize, chat, or that agent loop quietly eating the budget.</p>
+    <div class="explorer" data-reveal>
+      <div class="tabs" role="tablist" aria-label="Features" aria-orientation="vertical">
+        <span class="tab-ind" aria-hidden="true"></span>
+        <button class="tab" role="tab" id="t-feat" aria-controls="p-feat" aria-selected="true"><h3>Cost per feature</h3><p><span>Tag each call with the feature that made it, and see which one eats the budget.</span></p></button>
+        <button class="tab" role="tab" id="t-alert" aria-controls="p-alert" aria-selected="false" tabindex="-1"><h3>Alerts</h3><p><span>Email or Slack when a customer’s AI cost passes a share of what they pay.</span></p></button>
+        <button class="tab" role="tab" id="t-cap" aria-controls="p-cap" aria-selected="false" tabindex="-1"><h3>Hard caps</h3><p><span><code>canSpend()</code> answers allow, warn or block before the call, not after the money is gone.</span></p></button>
+        <button class="tab" role="tab" id="t-priv" aria-controls="p-priv" aria-selected="false" tabindex="-1"><h3>Never sees your prompts</h3><p><span>Token counts, model, customer and feature. Nothing else leaves your server.</span></p></button>
       </div>
-      <div class="stage reveal" role="img" aria-label="Example: AI cost by feature over 30 days, agent loop is the largest at $1,240">
-        <div class="bars">
-          <div><span>agent_loop</span><span>$1,240</span><i style="--w:100%"></i></div>
-          <div><span>chat</span><span>$412</span><i style="--w:33%"></i></div>
-          <div><span>summarize</span><span>$188</span><i style="--w:15%"></i></div>
-          <div><span>embed</span><span>$36</span><i style="--w:3%"></i></div>
+
+      <div class="stage">
+        <div class="panel" role="tabpanel" id="p-feat" aria-labelledby="t-feat">
+          <div class="panel-head">
+            <b>AI cost by feature · 30 days</b>
+            <div class="seg light" role="radiogroup" aria-label="Measure" data-seg="measure">
+              <span class="seg-thumb" aria-hidden="true"></span>
+              <button type="button" role="radio" aria-checked="true" data-v="spend">Spend</button>
+              <button type="button" role="radio" aria-checked="false" data-v="calls" tabindex="-1">Calls</button>
+            </div>
+          </div>
+          <div class="bars" data-bars>
+            <div class="hot" data-k="agent_loop"><span>agent_loop</span><span>$1,240</span><i></i></div>
+            <div data-k="chat"><span>chat</span><span>$412</span><i></i></div>
+            <div data-k="summarize"><span>summarize</span><span>$188</span><i></i></div>
+            <div data-k="embed"><span>embed</span><span>$36</span><i></i></div>
+          </div>
+          <p class="panel-note"><strong>agent_loop</strong> is 3% of your calls and 66% of your spend.</p>
         </div>
-      </div>
-    </div>
 
-    <div class="feature flip">
-      <div class="copy reveal">
-        <h3>Alerts before the invoice.</h3>
-        <p>Email or Slack the moment a customer’s AI cost passes a share of what they pay, or jumps 3× overnight.</p>
-      </div>
-      <div class="stage reveal" role="img" aria-label="Example alert: customer cus_8fK2 is losing you money">
-        <div class="stack"><div class="notice">
-          <header><span>MarginCap</span><span>now</span></header>
-          <b>cus_8fK2… is losing you money</b>
-          <p>$64.10 of AI this month on a $29 plan. Margin −121%.</p>
-        </div></div>
-      </div>
-    </div>
+        <div class="panel" role="tabpanel" id="p-alert" aria-labelledby="t-alert" hidden>
+          <div class="range-row">
+            <label for="threshold">Alert me when a customer’s AI cost passes <output id="th-out" for="threshold">80%</output> of what they pay</label>
+            <input type="range" id="threshold" min="10" max="200" step="5" value="80">
+          </div>
+          <div class="alerts-box">
+            <ul class="alerts" aria-live="polite"></ul>
+            <div class="empty" hidden><b>No alerts at this threshold</b><span>Every customer’s AI cost is below it.</span></div>
+          </div>
+        </div>
 
-    <div class="feature">
-      <div class="copy reveal">
-        <h3>Hard caps, checked before the call.</h3>
-        <p>Budget alerts tell you after the money is gone. <code>canSpend()</code> answers allow, warn or block <em>first</em>, so one runaway loop can’t eat your month.</p>
-      </div>
-      <div class="stage reveal">
-<pre class="code" aria-label="Code example: check canSpend before calling the model"><span class="k">const</span> verdict = <span class="k">await</span> <span class="f">canSpend</span>(customerId)
-<span class="c">// "allow" | "warn" | "block"</span>
+        <div class="panel" role="tabpanel" id="p-cap" aria-labelledby="t-cap" hidden>
+          <div class="budget">
+            <div class="budget-top">
+              <span class="id">cus_8fK2… · monthly budget</span>
+              <span class="amt"><span data-spent>$28.00</span> <small>of $40.00</small></span>
+            </div>
+            <div class="meter" data-v="allow" role="meter" aria-label="Budget used" aria-valuemin="0" aria-valuemax="40" aria-valuenow="28"><i></i></div>
+            <div class="scale"><span>$0</span><span>warn at 80%</span><span>$40</span></div>
+            <div class="verdict-line"><span>await canSpend(<span class="c">"cus_8fK2…"</span>)</span><span class="verdict" data-v="allow">"allow"</span></div>
+            <div class="budget-actions">
+              <button type="button" class="btn" data-call>Make a model call · $4.20</button>
+              <button type="button" class="textbtn" data-reset>Reset</button>
+            </div>
+          </div>
+        </div>
 
-<span class="k">if</span> (verdict === <span class="s">"block"</span>) {
-  <span class="k">return</span> <span class="f">showUpgrade</span>()
-}</pre>
-      </div>
-    </div>
-
-    <div class="feature flip">
-      <div class="copy reveal">
-        <h3>Never sees your prompts.</h3>
-        <p>The SDK sends token counts, model, customer ID and feature tag. Nothing else. It runs async, outside your request path, so it can’t slow down or break your app.</p>
-      </div>
-      <div class="stage reveal">
-<div class="payload" aria-label="Example of the data MarginCap receives; prompts and completions are never sent">{
-  "customer": <span class="s">"cus_8fK2…"</span>,
-  "feature": <span class="s">"summarize"</span>,
-  "model": <span class="s">"gpt-…"</span>,
-  "input_tokens": <span class="s">1840</span>,
-  "output_tokens": <span class="s">412</span>
+        <div class="panel" role="tabpanel" id="p-priv" aria-labelledby="t-priv" hidden>
+          <div class="compare">
+<div class="theirs"><span class="cap-l">Your app → OpenAI</span>{
+  "model": "gpt-…",
+  "messages": [{
+    "role": "user",
+    "content": <span class="gone">"Summarize this contract for Acme Corp…"</span>
+  }]
+}</div>
+<div class="ours"><span class="cap-l">Your app → MarginCap</span>{
+  <span class="k">"customer"</span>: <span class="s">"cus_8fK2…"</span>,
+  <span class="k">"feature"</span>: <span class="s">"summarize"</span>,
+  <span class="k">"model"</span>: <span class="s">"gpt-…"</span>,
+  <span class="k">"input_tokens"</span>: <span class="s">1840</span>,
+  <span class="k">"output_tokens"</span>: <span class="s">412</span>
 }
-<span class="x">"prompt"</span>  <span class="x">"completion"</span>  <span class="c">never sent</span></div>
+<span class="n">// no prompt, no completion</span></div>
+          </div>
+          <p class="panel-note">The SDK runs async, outside your request path. If MarginCap is down, your app doesn’t notice.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -566,26 +755,26 @@
 
 <section id="how">
   <div class="wrap">
-    <div class="center reveal">
+    <div class="head-row" data-reveal>
       <h2>Five minutes to set up.</h2>
-      <p class="lead">No migration, no proxy in front of your model calls.</p>
+      <p class="lead">No migration, and no proxy sitting between you and your model provider.</p>
     </div>
-    <div class="steps">
-      <div class="step reveal">
-        <div class="step-n">1</div>
-        <h3>Wrap your client.</h3>
+    <div class="steps" data-reveal>
+      <div class="step">
+        <span class="eyebrow-num">01</span>
+        <h3>Wrap your client</h3>
         <p>One line around the SDK you already use.</p>
-        <code>track(new OpenAI(), { customerId, feature })</code>
+        <div class="snippet"><code>track(new OpenAI(), { customerId, feature })</code></div>
       </div>
-      <div class="step reveal">
-        <div class="step-n">2</div>
-        <h3>Connect Stripe.</h3>
+      <div class="step">
+        <span class="eyebrow-num">02</span>
+        <h3>Connect Stripe</h3>
         <p>Read-only. We pull revenue per customer and touch nothing else.</p>
       </div>
-      <div class="step reveal">
-        <div class="step-n">3</div>
-        <h3>Read the table.</h3>
-        <p>Every customer’s revenue, AI cost and margin, money-losers on top.</p>
+      <div class="step">
+        <span class="eyebrow-num">03</span>
+        <h3>Read the table</h3>
+        <p>Every customer’s revenue, AI cost and margin, with the money-losers on top.</p>
       </div>
     </div>
   </div>
@@ -593,10 +782,11 @@
 
 <section id="pricing" class="alt">
   <div class="wrap">
-    <div class="center reveal">
+    <div class="head-row" data-reveal>
       <h2>Priced for founders, not FinOps teams.</h2>
+      <p class="lead">Pay for events, not seats. Every plan includes cost per customer.</p>
     </div>
-    <div class="plans reveal">
+    <div class="plans" data-reveal>
       <div class="plan">
         <h3>Free</h3>
         <div class="price">$0</div>
@@ -625,9 +815,9 @@
         </ul>
       </div>
     </div>
-    <div class="founding reveal">
+    <div class="founding" data-reveal>
       <div>
-        <p class="label">Founding member · 50 spots</p>
+        <p class="label">Founding member · first 50</p>
         <h3>$19/mo on Indie, locked while you stay subscribed.</h3>
         <p>Limited to the first 50 founding members. <b>US$19/month, charged today and monthly until you cancel</b>; taxes extra where they apply. Full refund on request any time before launch. <span class="js-launch-line">Launch date to be announced.</span> <a href="/terms#preorder">Pre-order terms</a></p>
       </div>
@@ -637,46 +827,53 @@
 </section>
 
 <section id="faq">
-  <div class="wrap">
-    <div class="center reveal"><h2>Questions.</h2></div>
-    <div class="faq">
+  <div class="wrap faq-grid">
+    <h2 data-reveal>Questions.</h2>
+    <div class="faq" data-reveal>
       <details>
-        <summary>How is this different from Langfuse or Helicone?<svg aria-hidden="true" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5l5 5 5-5"/></svg></summary>
-        <p>They’re observability tools. They show what a user <em>cost</em>, but they don’t know what that user <em>pays</em> you. MarginCap joins the two and gives you margin.</p>
+        <summary>How is this different from Langfuse or Helicone?<span class="pm" aria-hidden="true"></span></summary>
+        <div class="answer"><p>They’re observability tools. They show what a user <em>cost</em>, but they don’t know what that user <em>pays</em> you. MarginCap joins the two and gives you margin.</p></div>
       </details>
       <details>
-        <summary>Can’t Stripe’s token billing do this?<svg aria-hidden="true" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5l5 5 5-5"/></svg></summary>
-        <p>Stripe token billing helps you <em>charge</em> customers for tokens. If you’re on flat or per-seat pricing, like most of us, it doesn’t show which customers you’re losing money on.</p>
+        <summary>Can’t Stripe’s token billing do this?<span class="pm" aria-hidden="true"></span></summary>
+        <div class="answer"><p>Stripe token billing helps you <em>charge</em> customers for tokens. If you’re on flat or per-seat pricing, like most of us, it doesn’t show which customers you’re losing money on.</p></div>
       </details>
       <details>
-        <summary>Do I need usage-based pricing?<svg aria-hidden="true" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5l5 5 5-5"/></svg></summary>
-        <p>No. MarginCap is built for flat and per-seat pricing, which is exactly where power users hide.</p>
+        <summary>Do I need usage-based pricing?<span class="pm" aria-hidden="true"></span></summary>
+        <div class="answer"><p>No. MarginCap is built for flat and per-seat pricing, which is exactly where power users hide.</p></div>
       </details>
       <details>
-        <summary>What if I don’t use Stripe?<svg aria-hidden="true" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5l5 5 5-5"/></svg></summary>
-        <p>You still get cost per customer and hard caps. A CSV revenue import is coming soon.</p>
+        <summary>What if I don’t use Stripe?<span class="pm" aria-hidden="true"></span></summary>
+        <div class="answer"><p>You still get cost per customer and hard caps. A CSV revenue import is coming soon.</p></div>
       </details>
       <details>
-        <summary>Who’s building this?<svg aria-hidden="true" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5l5 5 5-5"/></svg></summary>
-        <p><span class="js-founder">A solo developer</span>. Questions? <a href="mailto:hello@margincap.dev" class="js-email">hello@margincap.dev</a></p>
+        <summary>Who’s building this?<span class="pm" aria-hidden="true"></span></summary>
+        <div class="answer"><p><span class="js-founder">A solo developer</span>. Questions? <a href="mailto:hello@margincap.dev" class="js-email">hello@margincap.dev</a></p></div>
       </details>
     </div>
   </div>
 </section>
 
 <section id="waitlist" class="final alt">
-  <div class="wrap center reveal">
-    <h2>Stop guessing which customers are profitable.</h2>
-    <p class="lead">Join the early-access list. One email when it’s ready.</p>
-    <form class="waitlist" novalidate>
-      <label for="email" class="sr-only">Email</label>
-      <input type="email" id="email" name="email" placeholder="you@company.com" autocomplete="email" inputmode="email" required>
-      <input type="text" name="_gotcha" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <button type="submit" class="btn"><span class="label">Get early access</span></button>
-    </form>
-    <div class="form-msg" role="status" aria-live="polite"></div>
-    <p class="consent">By joining, you agree to get emails from MarginCap about the launch. No spam, unsubscribe any time. See our <a href="/privacy">privacy policy</a>.</p>
-    <p class="or-preorder"><a href="#" class="more js-preorder">Or pre-order a founding spot for $19/mo <span class="chev" aria-hidden="true">›</span></a></p>
+  <div class="wrap final-grid">
+    <div data-reveal>
+      <h2>Stop guessing which customers are profitable.</h2>
+      <p class="lead">Join the early-access list. One email when it’s ready.</p>
+    </div>
+    <div data-reveal>
+      <form class="waitlist" novalidate>
+        <label for="email" class="sr-only">Email</label>
+        <input type="email" id="email" name="email" placeholder="you@company.com" autocomplete="email" inputmode="email" required aria-describedby="form-msg">
+        <input type="text" name="_gotcha" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button type="submit" class="btn">
+          <span class="state" data-s="idle">Get early access</span>
+          <span class="state" data-s="done" hidden><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9.5 7.5 13 14 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg>You’re on the list</span>
+        </button>
+      </form>
+      <div class="form-msg" id="form-msg" role="status" aria-live="polite"></div>
+      <p class="consent">By joining, you agree to get emails from MarginCap about the launch. No spam, unsubscribe any time. See our <a href="/privacy">privacy policy</a>.</p>
+      <p class="or-preorder"><a href="#" class="link js-preorder">Or pre-order a founding spot for $19/mo <span class="arr" aria-hidden="true">→</span></a></p>
+    </div>
   </div>
 </section>
 </main>
@@ -689,6 +886,7 @@
   </div>
 </footer>
 
+<script src="/vendor/motion-12.23.12.js"></script>
 <script>
   // ---- CONFIG: fill these in before deploying ----
   const CONFIG = {
@@ -707,8 +905,10 @@
   const configured = (v) => v && !v.includes("REPLACE_ME");
   const params = new URLSearchParams(location.search);
   const ref = params.get("ref") || params.get("utm_source") || "direct";
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-  document.querySelectorAll(".js-preorder").forEach((a) => {
+  $$(".js-preorder").forEach((a) => {
     if (configured(CONFIG.STRIPE_PREORDER_LINK)) {
       // Carry the traffic source into Stripe so you can see which channel pre-orders came from
       // (Stripe only accepts letters, digits, - and _ here, up to 200 chars)
@@ -718,26 +918,26 @@
     } else {
       a.addEventListener("click", (e) => {
         e.preventDefault();
-        document.getElementById("waitlist").scrollIntoView();
+        $("#waitlist").scrollIntoView();
         setMsg("Pre-orders open soon. Join the list and you'll get first dibs on a founding spot.");
       });
     }
   });
 
-  if (CONFIG.LAUNCH_DATE) document.querySelectorAll(".js-launch-line").forEach((el) => (el.textContent = "Launching " + CONFIG.LAUNCH_DATE + "."));
-  if (CONFIG.FOUNDER_LINE) document.querySelectorAll(".js-founder").forEach((el) => (el.textContent = CONFIG.FOUNDER_LINE.replace(/\.$/, "")));
-  document.querySelectorAll(".js-email").forEach((a) => { a.href = "mailto:" + CONFIG.CONTACT_EMAIL; a.textContent = CONFIG.CONTACT_EMAIL; });
-  document.querySelectorAll(".js-year").forEach((el) => (el.textContent = new Date().getFullYear()));
+  if (CONFIG.LAUNCH_DATE) $$(".js-launch-line").forEach((el) => (el.textContent = "Launching " + CONFIG.LAUNCH_DATE + "."));
+  if (CONFIG.FOUNDER_LINE) $$(".js-founder").forEach((el) => (el.textContent = CONFIG.FOUNDER_LINE.replace(/\.$/, "")));
+  $$(".js-email").forEach((a) => { a.href = "mailto:" + CONFIG.CONTACT_EMAIL; a.textContent = CONFIG.CONTACT_EMAIL; });
+  $$(".js-year").forEach((el) => (el.textContent = new Date().getFullYear()));
 
   // Preconnect to Stripe/Formspree only once the visitor shows intent, so no IP is sent to them on page load
   const warmed = new Set();
   const warm = (origin) => { if (warmed.has(origin)) return; warmed.add(origin);
     const l = document.createElement("link"); l.rel = "preconnect"; l.href = origin; document.head.appendChild(l); };
-  document.querySelectorAll(".js-preorder").forEach((a) => ["pointerenter", "focus"].forEach((ev) => a.addEventListener(ev, () => warm("https://buy.stripe.com"), { once: true })));
-  document.getElementById("email").addEventListener("focus", () => warm("https://formspree.io"), { once: true });
+  $$(".js-preorder").forEach((a) => ["pointerenter", "focus"].forEach((ev) => a.addEventListener(ev, () => warm("https://buy.stripe.com"), { once: true })));
+  $("#email").addEventListener("focus", () => warm("https://formspree.io"), { once: true });
 
   // Thank-you banner after Stripe redirects back with ?preorder=thanks
-  const thanks = document.querySelector(".thanks");
+  const thanks = $(".thanks");
   if (params.get("preorder") === "thanks") {
     thanks.hidden = false;
     history.replaceState(null, "", location.pathname + location.hash); // a refresh shouldn't show it again
@@ -746,38 +946,463 @@
     setTimeout(close, 9000);
   }
 
-  // Scroll reveal: once per element, starting a little before it enters the viewport
-  const revealEls = document.querySelectorAll(".reveal");
-  // In-page links (e.g. "Get early access") jump straight to a section: show it immediately
-  // instead of landing on a blank area while the fade-in catches up
-  document.addEventListener("click", (e) => {
-    const a = e.target.closest('a[href^="#"]');
-    const target = a && a.getAttribute("href").length > 1 && document.querySelector(a.getAttribute("href"));
-    if (!target) return;
-    [target, ...target.querySelectorAll(".reveal")].forEach((el) => el.classList.contains("reveal") && el.classList.add("in"));
-  });
-  if ("IntersectionObserver" in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } });
-    }, { rootMargin: "0px 0px -60px 0px" });
-    revealEls.forEach((el) => io.observe(el));
-  } else {
-    revealEls.forEach((el) => el.classList.add("in"));
+  // ---------- Motion helpers ----------
+  // Springs everywhere (interruptible, start from the current value). Without Motion, or with
+  // reduced motion, values are applied instantly so nothing depends on animation to be usable.
+  const M = window.Motion;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (M && !reduce) document.documentElement.classList.add("motion");
+  const SPRING = { type: "spring", bounce: 0, duration: 0.45 };
+  const last = (v) => (Array.isArray(v) ? v[v.length - 1] : v);
+  const px = (v) => (typeof v === "number" ? v + "px" : v);
+  function setNow(el, kf) {
+    const t = [];
+    for (const [k, v] of Object.entries(kf)) {
+      const f = last(v);
+      if (k === "x") t.push(`translateX(${px(f)})`);
+      else if (k === "y") t.push(`translateY(${px(f)})`);
+      else if (k === "scale") t.push(`scale(${f})`);
+      else if (k === "scaleX") t.push(`scaleX(${f})`);
+      else el.style[k] = typeof f === "number" && k !== "opacity" ? f + "px" : f;
+    }
+    if (t.length) el.style.transform = t.join(" ");
+  }
+  function anim(el, kf, opts = {}) {
+    if (!el) return Promise.resolve();
+    if (!M) { setNow(el, kf); return Promise.resolve(); }
+    const o = reduce ? { duration: 0 } : { ...SPRING, ...opts };
+    return M.animate(el, kf, o);
+  }
+  // Exit animations must never block cleanup: background tabs pause animation frames
+  const settle = (p, ms) => Promise.race([Promise.resolve(p), new Promise((r) => setTimeout(r, ms))]);
+  const fmt$ = (n) => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtPct = (m) => (m < 0 ? "−" : "") + Math.round(Math.abs(m) * 100) + "%";
+
+  // Rolling digits: each digit springs through a 0–9 column. Screen readers get plain text.
+  function roll(el, text, delay = 0) {
+    if (!M || reduce) { el.textContent = text; return; }
+    const shape = (s) => s.replace(/\d/g, "0");
+    if (!el._built || shape(el._built) !== shape(text)) {
+      el.textContent = "";
+      el.classList.add("roll");
+      const sr = document.createElement("span"); sr.className = "sr-only"; el.appendChild(sr);
+      for (const ch of text) {
+        const s = document.createElement("span"); s.setAttribute("aria-hidden", "true");
+        if (/\d/.test(ch)) {
+          s.className = "d";
+          const col = document.createElement("span");
+          for (let i = 0; i < 10; i++) { const n = document.createElement("i"); n.textContent = i; col.appendChild(n); }
+          s.appendChild(col);
+        } else s.textContent = ch;
+        el.appendChild(s);
+      }
+    }
+    el._built = text;
+    el.querySelector(".sr-only").textContent = text;
+    const cols = $$(".d > span", el); let k = 0;
+    for (const ch of text) if (/\d/.test(ch)) {
+      M.animate(cols[k], { y: `${-ch * 1.1}em` }, { type: "spring", bounce: 0.12, duration: 0.8, delay: delay + k * 0.025 });
+      k++;
+    }
   }
 
-  // Nav hairline only once content is scrolling under the translucent bar
-  const nav = document.querySelector("nav");
+  // Segmented control: radiogroup with a sliding thumb and arrow-key support
+  function segmented(root, onChange) {
+    const thumb = $(".seg-thumb", root), btns = $$("button", root);
+    const current = () => btns.find((b) => b.getAttribute("aria-checked") === "true");
+    const place = (b, instant) => {
+      const kf = { x: b.offsetLeft - 3, width: b.offsetWidth };
+      instant || !M ? setNow(thumb, kf) : anim(thumb, kf, { bounce: 0.15, duration: 0.4 });
+    };
+    const select = (b, focus) => {
+      if (b === current()) return;
+      btns.forEach((o) => { o.setAttribute("aria-checked", String(o === b)); o.tabIndex = o === b ? 0 : -1; });
+      place(b); if (focus) b.focus(); onChange(b.dataset.v);
+    };
+    btns.forEach((b, i) => {
+      b.addEventListener("click", () => select(b));
+      b.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+        e.preventDefault();
+        select(btns[(i + (e.key === "ArrowRight" ? 1 : -1) + btns.length) % btns.length], true);
+      });
+    });
+    const sync = () => place(current(), true);
+    sync(); document.fonts && document.fonts.ready.then(sync);
+    addEventListener("resize", sync);
+  }
+
+  // FLIP: record positions, let the DOM change, then spring each element from where it was
+  function flip(els, change) {
+    const before = new Map(els.map((el) => [el, el.getBoundingClientRect().top]));
+    change();
+    els.forEach((el) => {
+      if (el.hidden || el.style.display === "none") return;
+      const dy = before.get(el) - el.getBoundingClientRect().top;
+      if (Math.abs(dy) > 0.5) anim(el, { y: [dy, 0] }, { bounce: 0.1, duration: 0.5 });
+    });
+  }
+
+  // ---------- Dashboard ----------
+  const DATA = [
+    { id: "cus_8fK2…", plan: "Pro", mrr: 29, cost: { 30: 64.10, 7: 21.40 }, f: { agent_loop: 0.71, chat: 0.22, summarize: 0.07 } },
+    { id: "cus_Q1xa…", plan: "Team", mrr: 49, cost: { 30: 52.80, 7: 9.80 }, f: { agent_loop: 0.48, chat: 0.40, summarize: 0.12 } },
+    { id: "cus_T9ve…", plan: "Pro", mrr: 29, cost: { 30: 24.60, 7: 6.10 }, f: { chat: 0.70, summarize: 0.30 } },
+    { id: "cus_3mPz…", plan: "Business", mrr: 99, cost: { 30: 18.40, 7: 4.00 }, f: { chat: 0.55, summarize: 0.35, embed: 0.10 } },
+    { id: "cus_Hn42…", plan: "Team", mrr: 49, cost: { 30: 7.90, 7: 1.70 }, f: { summarize: 0.62, chat: 0.38 } },
+    { id: "cus_Lr7d…", plan: "Pro", mrr: 29, cost: { 30: 2.15, 7: 0.52 }, f: { chat: 0.80, embed: 0.20 } },
+    { id: "cus_Zq5c…", plan: "Business", mrr: 99, cost: { 30: 3.10, 7: 0.70 }, f: { embed: 0.60, summarize: 0.40 } },
+    { id: "cus_Wb0e…", plan: "Pro", mrr: 29, cost: { 30: 0.88, 7: 0.21 }, f: { chat: 1 } },
+  ];
+  const FEAT_CLASS = { agent_loop: "f1", chat: "f2", summarize: "f3", embed: "f4" };
+  const LOCK = '<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2.5" y="5.5" width="7" height="5" rx="1.2" fill="currentColor"/><path d="M4 5.5V4a2 2 0 0 1 4 0v1.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>';
+
+  const app = $("#demo");
+  const tbody = $("tbody", app);
+  const tip = $("#tip");
+  const toast = $(".toast", app);
+  const state = { period: 30, filter: "all", sort: { key: "margin", dir: 1 }, capped: new Set() };
+  const calc = (c) => {
+    const rev = state.period === 30 ? c.mrr : (c.mrr * 7) / 30;
+    const cost = c.cost[state.period];
+    return { rev, cost, margin: (rev - cost) / rev };
+  };
+
+  const rows = DATA.map((c, i) => {
+    const tr = tbody.rows[i];
+    tr.tabIndex = 0;
+    tr.dataset.id = c.id;
+    tr.cells[4].insertAdjacentHTML("beforeend", '<span class="mbar" aria-hidden="true"><i></i></span>');
+    tr._c = c;
+    return tr;
+  });
+
+  function paintRow(tr) {
+    const c = tr._c, { rev, cost, margin } = calc(c), capped = state.capped.has(c.id);
+    const [, , revCell, costCell, mCell, actCell] = tr.cells;
+    revCell.textContent = fmt$(rev);
+    costCell.textContent = fmt$(cost);
+    mCell.firstChild.nodeValue = fmtPct(margin);
+    mCell.className = "r m " + (margin < 0 ? "loss" : "gain");
+    const bar = $(".mbar i", mCell);
+    bar.className = margin < 0 ? "down" : "up";
+    anim(bar, { width: Math.min(Math.abs(margin), 1) * 32 }, { duration: 0.6 });
+    tr.classList.toggle("bad", margin < 0 && !capped);
+    tr.classList.toggle("capped", capped);
+    const wantsBtn = margin < 0 || capped;
+    let btn = $(".cap", actCell);
+    if (wantsBtn && !btn) {
+      btn = document.createElement("button");
+      btn.type = "button"; btn.className = "cap";
+      btn.addEventListener("click", (e) => { e.stopPropagation(); toggleCap(c.id); });
+      actCell.appendChild(btn);
+      anim(btn, { opacity: [0, 1], scale: [0.85, 1] }, { bounce: 0.3, duration: 0.4 });
+    } else if (!wantsBtn && btn) btn.remove();
+    if (btn) {
+      btn.setAttribute("aria-pressed", String(capped));
+      btn.setAttribute("aria-label", (capped ? "Remove cap on " : "Cap ") + c.id);
+      btn.innerHTML = capped ? LOCK + "Capped" : "Cap";
+    }
+  }
+
+  function paintKpis(first) {
+    let rev = 0, cost = 0, losing = 0;
+    DATA.forEach((c) => { const v = calc(c); rev += v.rev; cost += v.cost; if (v.margin < 0 && !state.capped.has(c.id)) losing++; });
+    const margin = (rev - cost) / rev, d = first ? 0.2 : 0;
+    roll($('[data-kpi="rev"]'), "$" + Math.round(rev).toLocaleString("en-US"), d);
+    roll($('[data-kpi="cost"]'), fmt$(cost), d);
+    roll($('[data-kpi="margin"]'), fmtPct(margin), d);
+    roll($('[data-kpi="losing"]'), String(losing), d);
+    $('[data-kpi="losing-note"]').textContent = losing === 1 ? "customer, not capped" : "customers, not capped";
+  }
+
+  const sortVal = (tr) => { const v = calc(tr._c); return state.sort.key === "rev" ? v.rev : state.sort.key === "cost" ? v.cost : v.margin; };
+
+  async function render(opts = {}) {
+    const visible = (tr) => state.filter === "all" || calc(tr._c).margin < 0 || state.capped.has(tr._c.id);
+    const leaving = rows.filter((tr) => !tr.hidden && !visible(tr));
+    if (leaving.length && M && !reduce) await settle(Promise.all(leaving.map((tr) => M.animate(tr, { opacity: 0 }, { duration: 0.12 }))), 160);
+    const shown = rows.filter((tr) => !tr.hidden);
+    flip(shown, () => {
+      rows.forEach(paintRow);
+      [...rows].sort((a, b) => (sortVal(a) - sortVal(b)) * state.sort.dir).forEach((tr) => tbody.appendChild(tr));
+      rows.forEach((tr) => {
+        const show = visible(tr);
+        if (show && tr.hidden) { tr.hidden = false; anim(tr, { opacity: [0, 1] }, { duration: 0.3 }); }
+        else if (!show) { tr.hidden = true; tr.style.opacity = ""; }
+      });
+    });
+    paintKpis(opts.first);
+  }
+
+  function toggleCap(id) {
+    const on = !state.capped.has(id);
+    on ? state.capped.add(id) : state.capped.delete(id);
+    render();
+    if (on) showToast(id); else hideToast();
+  }
+
+  let toastTimer;
+  function showToast(id) {
+    clearTimeout(toastTimer);
+    $("span", toast).innerHTML = `<b>${id}</b> capped. <code>canSpend()</code> now returns "block".`;
+    toast.querySelector("button").onclick = () => toggleCap(id);
+    toast.hidden = false;
+    anim(toast, { opacity: [0, 1], y: [10, 0] }, { bounce: 0.2, duration: 0.4 });
+    toastTimer = setTimeout(hideToast, 5000);
+  }
+  function hideToast() {
+    clearTimeout(toastTimer);
+    if (toast.hidden) return;
+    settle(anim(toast, { opacity: 0, y: 6 }, { duration: 0.2 }), 240).then(() => (toast.hidden = true));
+  }
+
+  // Cost breakdown tooltip: hover, keyboard focus, or tap on touch screens
+  let tipped = null;
+  function showTip(tr) {
+    if (tipped === tr) return;
+    if (tipped) tipped.classList.remove("tipped");
+    tipped = tr; tr.classList.add("tipped"); tr.setAttribute("aria-describedby", "tip");
+    const c = tr._c, { rev, cost } = calc(c);
+    const parts = Object.entries(c.f).sort((a, b) => b[1] - a[1]);
+    tip.innerHTML = `<b>${c.id}</b>AI cost is ${Math.round((cost / rev) * 100)}% of what they pay
+      <span class="bars-mini">${parts.map(([k, v]) => `<i class="${FEAT_CLASS[k]}" style="width:${v * 100}%"></i>`).join("")}</span>
+      <ul>${parts.map(([k, v]) => `<li><span><i class="${FEAT_CLASS[k]}"></i>${k}</span><span>${fmt$(cost * v)}</span></li>`).join("")}</ul>`;
+    tip.hidden = false;
+    const a = app.getBoundingClientRect(), r = tr.getBoundingClientRect();
+    const below = r.bottom - a.top + 6, h = tip.offsetHeight;
+    const top = below + h > app.clientHeight - 8 ? r.top - a.top - h - 6 : below;
+    const left = Math.min(Math.max(12, (tr.cells[3].getBoundingClientRect().left - a.left) - 40), app.clientWidth - tip.offsetWidth - 12);
+    tip.style.left = left + "px"; tip.style.top = top + "px";
+    anim(tip, { opacity: [0, 1], scale: [0.97, 1] }, { duration: 0.25 });
+  }
+  function hideTip() {
+    if (!tipped) return;
+    tipped.classList.remove("tipped"); tipped.removeAttribute("aria-describedby");
+    tipped = null; tip.hidden = true;
+  }
+  rows.forEach((tr) => {
+    tr.addEventListener("pointerenter", (e) => e.pointerType === "mouse" && showTip(tr));
+    tr.addEventListener("pointerleave", (e) => e.pointerType === "mouse" && hideTip());
+    tr.addEventListener("focus", () => showTip(tr));
+    tr.addEventListener("blur", hideTip);
+    tr.addEventListener("click", (e) => { if (e.pointerType !== "mouse") tipped === tr ? hideTip() : showTip(tr); });
+  });
+  addEventListener("scroll", () => { if (tipped && document.activeElement !== tipped) hideTip(); }, { passive: true });
+
+  $$("th button", app).forEach((b) => b.addEventListener("click", () => {
+    const key = b.dataset.sort;
+    state.sort = { key, dir: state.sort.key === key ? -state.sort.dir : key === "margin" ? 1 : -1 };
+    $$("th", app).forEach((th) => th.removeAttribute("aria-sort"));
+    b.closest("th").setAttribute("aria-sort", state.sort.dir === 1 ? "ascending" : "descending");
+    hideTip(); render();
+  }));
+  segmented($('[data-seg="period"]'), (v) => { state.period = Number(v); hideTip(); render(); });
+  segmented($('[data-seg="filter"]'), (v) => { state.filter = v; hideTip(); render(); });
+
+  render({ first: true });
+  if (M && !reduce) anim($(".app-wrap"), { opacity: [0, 1], y: [40, 0] }, { duration: 1, delay: 0.1 });
+
+  // ---------- Feature explorer ----------
+  const tabs = $$('[role="tab"]');
+  const ind = $(".tab-ind");
+  const panelHooks = {};
+  function placeInd(t, instant) {
+    const i = tabs.indexOf(t), h3 = $("h3", t), step = tabs.find((o) => o !== t).offsetHeight + 2;
+    const kf = { y: i * step + 16, height: h3.offsetHeight };
+    instant || !M ? setNow(ind, kf) : anim(ind, kf, { bounce: 0.15, duration: 0.5 });
+  }
+  function selectTab(t, focus) {
+    const prev = tabs.find((o) => o.getAttribute("aria-selected") === "true");
+    if (prev === t) return;
+    const prevP = $("p", prev), prevH = prevP.offsetHeight;
+    tabs.forEach((o) => { const on = o === t; o.setAttribute("aria-selected", String(on)); o.tabIndex = on ? 0 : -1; $("#" + o.getAttribute("aria-controls")).hidden = !on; });
+    if (M && !reduce) {
+      settle(M.animate(prevP, { height: [prevH, 0], opacity: [1, 0] }, { ...SPRING, duration: 0.35 }), 400).then(() => { prevP.style.height = ""; prevP.style.opacity = ""; });
+      const p = $("p", t), h = p.scrollHeight;
+      settle(M.animate(p, { height: [0, h], opacity: [0, 1] }, { ...SPRING, duration: 0.45 }), 500).then(() => (p.style.height = ""));
+    }
+    placeInd(t);
+    const panel = $("#" + t.getAttribute("aria-controls"));
+    anim(panel, { opacity: [0, 1], y: [10, 0] }, { duration: 0.45 });
+    if (focus) t.focus();
+    panelHooks[panel.id] && panelHooks[panel.id]();
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => selectTab(t));
+    t.addEventListener("keydown", (e) => {
+      const n = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+      if (n) { e.preventDefault(); selectTab(tabs[(i + n + tabs.length) % tabs.length], true); }
+      if (e.key === "Home") { e.preventDefault(); selectTab(tabs[0], true); }
+      if (e.key === "End") { e.preventDefault(); selectTab(tabs[tabs.length - 1], true); }
+    });
+  });
+  const syncInd = () => placeInd(tabs.find((o) => o.getAttribute("aria-selected") === "true"), true);
+  syncInd(); document.fonts && document.fonts.ready.then(syncInd); addEventListener("resize", syncInd);
+
+  // Cost per feature: switch between spend and calls; bars resize and re-rank
+  const FEATS = { agent_loop: { spend: 1240, calls: 3120 }, chat: { spend: 412, calls: 18400 }, summarize: { spend: 188, calls: 9050 }, embed: { spend: 36, calls: 61200 } };
+  const barsBox = $("[data-bars]");
+  const barRows = $$("[data-bars] > div");
+  const note = $("#p-feat .panel-note");
+  let measure = "spend";
+  function paintBars() {
+    const max = Math.max(...Object.values(FEATS).map((f) => f[measure]));
+    flip(barRows, () => {
+      [...barRows].sort((a, b) => FEATS[b.dataset.k][measure] - FEATS[a.dataset.k][measure]).forEach((r) => barsBox.appendChild(r));
+    });
+    barRows.forEach((r, i) => {
+      const v = FEATS[r.dataset.k][measure];
+      r.children[1].textContent = measure === "spend" ? "$" + v.toLocaleString("en-US") : v.toLocaleString("en-US") + " calls";
+      anim(r.children[2], { scaleX: v / max }, { bounce: 0.1, duration: 0.7, delay: i * 0.04 });
+    });
+    note.innerHTML = measure === "spend"
+      ? "<strong>agent_loop</strong> is 3% of your calls and 66% of your spend."
+      : "<strong>embed</strong> makes 67% of your calls and costs 2% of your spend.";
+  }
+  segmented($('[data-seg="measure"]'), (v) => { measure = v; paintBars(); });
+  let barsShown = false;
+  const showBars = () => { if (!barsShown) { barsShown = true; paintBars(); } };
+  panelHooks["p-feat"] = () => { barsShown = false; barRows.forEach((r) => setNow(r.children[2], { scaleX: 0 })); requestAnimationFrame(showBars); };
+  M && !reduce ? M.inView(barsBox, showBars, { amount: 0.5 }) : showBars();
+
+  // Alerts: drag the threshold, watch which customers would alert
+  const range = $("#threshold"), out = $("#th-out"), list = $(".alerts"), empty = $(".empty");
+  const count = document.createElement("p"); count.className = "panel-note"; count.style.margin = "0 0 12px"; list.before(count);
+  const items = new Map();
+  function paintAlerts() {
+    const th = Number(range.value);
+    out.value = out.textContent = th + "%";
+    range.style.setProperty("--p", ((th - range.min) / (range.max - range.min)) * 100 + "%");
+    const hits = DATA.map((c) => ({ c, r: (c.cost[30] / c.mrr) * 100 })).filter((x) => x.r >= th).sort((a, b) => b.r - a.r);
+    count.innerHTML = hits.length ? `<strong>${hits.length} ${hits.length === 1 ? "customer" : "customers"}</strong> would alert this month.` : "";
+    const keep = new Set(hits.map((h) => h.c.id));
+    for (const [id, li] of items) if (!keep.has(id)) {
+      items.delete(id);
+      settle(anim(li, { opacity: 0, scale: 0.96 }, { duration: 0.15 }), 180).then(() => li.remove());
+    }
+    hits.forEach(({ c, r }, i) => {
+      let li = items.get(c.id);
+      if (!li) {
+        li = document.createElement("li");
+        li.innerHTML = `<span><b>${c.id}</b> <span>${fmt$(c.cost[30])} on $${c.mrr}</span></span><span class="ratio">${Math.round(r)}%</span>`;
+        items.set(c.id, li);
+        anim(li, { opacity: [0, 1], y: [-6, 0], scale: [0.98, 1] }, { bounce: 0.2, duration: 0.4 });
+      }
+      if (list.children[i] !== li) list.insertBefore(li, list.children[i] || null);
+    });
+    empty.hidden = hits.length > 0;
+    list.hidden = hits.length === 0;
+  }
+  range.addEventListener("input", paintAlerts);
+  paintAlerts();
+
+  // Hard caps: spend into the budget and watch the verdict change before the call is made
+  const BUDGET = 40, CALL = 4.2;
+  let spent = 28;
+  const meter = $(".meter"), verdict = $(".verdict"), callBtn = $("[data-call]");
+  function paintBudget(first) {
+    const pct = spent / BUDGET, v = pct >= 1 ? "block" : pct >= 0.8 ? "warn" : "allow";
+    roll($("[data-spent]"), fmt$(spent));
+    meter.dataset.v = v; meter.setAttribute("aria-valuenow", spent.toFixed(2));
+    anim($("i", meter), { scaleX: Math.min(pct, 1) }, { bounce: 0.15, duration: 0.6 });
+    if (verdict.dataset.v !== v || first) {
+      verdict.dataset.v = v; verdict.textContent = `"${v}"`;
+      if (!first) anim(verdict, { scale: [1.15, 1] }, { bounce: 0.4, duration: 0.4 });
+    }
+    callBtn.disabled = v === "block";
+    callBtn.textContent = v === "block" ? "Blocked before the call" : "Make a model call · $4.20";
+  }
+  callBtn.addEventListener("click", () => { spent = Math.round((spent + CALL) * 100) / 100; paintBudget(); });
+  $("[data-reset]").addEventListener("click", () => { spent = 28; paintBudget(); });
+  paintBudget(true);
+
+  // ---------- Hand-drawn mark around "$64" ----------
+  const markPath = $(".mark path");
+  if (M && !reduce) {
+    markPath.style.strokeDasharray = "1"; markPath.style.strokeDashoffset = "1";
+    M.inView(".mark", () => { M.animate(markPath, { strokeDashoffset: [1, 0] }, { duration: 0.9, ease: [0.65, 0, 0.35, 1], delay: 0.35 }); }, { amount: 1 });
+  }
+
+  // ---------- Scroll reveals ----------
+  const revealEls = $$("[data-reveal]").filter((el) => !el.classList.contains("app-wrap"));
+  const reveal = (el) => {
+    if (el._shown || !M || reduce) return; el._shown = true;
+    const kids = el.matches(".steps, .plans") ? [...el.children] : null;
+    if (kids && M && !reduce) {
+      el.style.opacity = 1;
+      M.animate(kids, { opacity: [0, 1], y: [24, 0] }, { ...SPRING, duration: 0.8, delay: M.stagger(0.07) });
+    } else anim(el, { opacity: [0, 1], y: [24, 0] }, { duration: 0.8 });
+  };
+  if (M && !reduce) revealEls.forEach((el) => M.inView(el, () => reveal(el), { margin: "0px 0px -8% 0px" }));
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest('a[href^="#"]');
+    const target = a && a.getAttribute("href").length > 1 && $(a.getAttribute("href"));
+    if (!target) return;
+    [target, ...$$("[data-reveal]", target)].forEach((el) => el.matches("[data-reveal]") && reveal(el));
+  });
+
+  // ---------- Nav: hairline once scrolled, sliding pill on the section you're in ----------
+  const nav = $("nav"), pill = $(".nav-pill");
   const onScroll = () => nav.classList.toggle("scrolled", scrollY > 4);
   addEventListener("scroll", onScroll, { passive: true }); onScroll();
+  const navLinks = $$('.nav-links a:not(.btn)');
+  let activeLink = null;
+  const setActive = (a) => {
+    if (a === activeLink) return;
+    activeLink = a;
+    navLinks.forEach((l) => l.removeAttribute("aria-current"));
+    if (!a) { anim(pill, { opacity: 0 }, { duration: 0.2 }); return; }
+    a.setAttribute("aria-current", "true");
+    const first = getComputedStyle(pill).opacity === "0";
+    if (first) setNow(pill, { x: a.offsetLeft, width: a.offsetWidth });
+    anim(pill, { x: a.offsetLeft, width: a.offsetWidth, opacity: 1 }, { bounce: 0.15, duration: 0.45 });
+  };
+  const sectionFor = new Map(navLinks.map((a) => [$(a.getAttribute("href")), a]));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => { if (en.isIntersecting) setActive(sectionFor.get(en.target)); });
+    if (scrollY < innerHeight * 0.5) setActive(null);
+  }, { rootMargin: "-45% 0px -50% 0px" });
+  sectionFor.forEach((_, s) => io.observe(s));
+  addEventListener("scroll", () => { if (scrollY < innerHeight * 0.5) setActive(null); }, { passive: true });
 
-  const form = document.querySelector("form.waitlist");
-  const msg = document.querySelector(".form-msg");
+  // ---------- FAQ: answers open and close with a spring instead of snapping ----------
+  $$("details").forEach((d) => {
+    const s = $("summary", d), body = $(".answer", d);
+    s.addEventListener("click", (e) => {
+      if (!M || reduce) return;
+      e.preventDefault();
+      if (d.open) {
+        settle(M.animate(body, { height: [body.offsetHeight, 0], opacity: [1, 0] }, { ...SPRING, duration: 0.35 }), 400).then(() => { d.open = false; body.style.height = ""; body.style.opacity = ""; });
+      } else {
+        d.open = true;
+        const h = body.scrollHeight;
+        settle(M.animate(body, { height: [0, h], opacity: [0, 1] }, { ...SPRING, duration: 0.45 }), 500).then(() => (body.style.height = ""));
+      }
+    });
+  });
+
+  // ---------- Waitlist ----------
+  const form = $("form.waitlist");
+  const msg = $(".form-msg");
+  const submitBtn = $("button[type=submit]", form);
   function setMsg(text, cls) {
     msg.textContent = text;
     msg.className = "form-msg " + (cls || "");
-    void msg.offsetWidth; // restart the fade so repeated messages still register
-    msg.classList.add("show");
+    anim(msg, { opacity: [0, 1], y: [-4, 0] }, { duration: 0.3 });
   }
+  function setBtn(done) {
+    submitBtn.classList.toggle("is-done", done);
+    $('[data-s="idle"]', submitBtn).hidden = done;
+    $('[data-s="done"]', submitBtn).hidden = !done;
+    if (done && M && !reduce) {
+      const p = $('[data-s="done"] path', submitBtn);
+      p.style.strokeDasharray = "1";
+      M.animate(p, { strokeDashoffset: [1, 0] }, { duration: 0.4, ease: "easeOut", delay: 0.05 });
+      M.animate(submitBtn, { scale: [0.96, 1] }, { type: "spring", bounce: 0.4, duration: 0.45 });
+    }
+  }
+  form.email.addEventListener("input", () => { form.email.removeAttribute("aria-invalid"); if (submitBtn.classList.contains("is-done")) setBtn(false); });
 
   // Remember who already signed up on this device, so a double-click, refresh or repeat visit
   // doesn't send a duplicate (idempotency). Storage can be blocked, so every access is guarded.
@@ -797,16 +1422,17 @@
     e.preventDefault();
     const email = form.email.value.trim().toLowerCase();
     if (form._gotcha.value) return; // honeypot: bots fill hidden fields
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setMsg("Please enter a valid email.", "err");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { form.email.setAttribute("aria-invalid", "true"); form.email.focus(); return setMsg("Please enter a valid email.", "err"); }
     if (!CONFIG.WAITLIST_ENDPOINT) return setMsg("Waitlist isn't connected yet (set WAITLIST_ENDPOINT).", "err");
     if (inFlight === email) return;
     const emailHash = await hashEmail(email);
-    if (emailHash && signedUp().includes(emailHash)) { form.reset(); return setMsg("You're already on the list. See you at launch.", "ok"); }
+    if (emailHash && signedUp().includes(emailHash)) { form.reset(); setBtn(true); return setMsg("You're already on the list. See you at launch.", "ok"); }
 
     // Optimistic: confirm instantly, roll back only if the request fails
     inFlight = email;
     form.reset();
-    setMsg("You're on the list. Watch your inbox.", "ok");
+    setBtn(true);
+    setMsg("Watch your inbox. One email when it’s ready.", "ok");
     try {
       const res = await fetch(CONFIG.WAITLIST_ENDPOINT, {
         method: "POST",
@@ -818,6 +1444,7 @@
       if (!res.ok) throw new Error(res.status);
       markSigned(emailHash);
     } catch (err) {
+      setBtn(false);
       form.email.value = email; // give their input back so they can retry
       // 429 = Formspree rate limit or the plan's monthly cap; either way, don't lose the lead
       setMsg(err.message === "rate"
