@@ -57,3 +57,13 @@ Source: the "before you ship" list from the second reel (40 items).
 | Password reset / email verification | Use email one-time codes instead of passwords (no reset flow needed); verify email on signup. |
 | Idempotency | Every usage event carries a client-generated ID; ingest dedupes (see `ux-checklist.md` #19). |
 | Delete account and data | Self-serve "delete workspace" that removes usage data and revokes keys. |
+
+## Runaway-bill and liability guards (from the "$100,000 with zero users" reel)
+
+| Risk from the reel | MarginCap status | Rule going forward |
+|---|---|---|
+| Bandwidth bill ($94,050 on a static site) | **Safe:** Cloudflare Pages serves static assets free and unlimited on every plan. `deploy.sh` refuses to ship `_worker.js` / `functions/` (billable) unless `ALLOW_FUNCTIONS=1`. | Keep the marketing site static. Keep the Cloudflare account on the **Workers Free** plan, which blocks requests over the daily limit instead of billing them. |
+| ADA lawsuits (5,000+ in 2025) | **Fixed:** 0 axe WCAG 2.2 AA violations, light + dark. | Dashboard: run axe in CI; fail the build on any violation. |
+| Database readable by anyone (RLS off) | **N/A:** no database yet. | MVP: if Supabase, enable **RLS on every table** before the first insert, with policies scoped to `workspace_id`. Add a test that uses the anon key and asserts every table returns 0 rows / 401. Never ship the service-role key to the browser. |
+| SMS without consent ($500 per text, TCPA) | **Guarded:** privacy policy commits to never texting or cold-calling. | Turn off phone collection on Stripe checkout. Never import those numbers into any SMS tool. |
+| Budget alerts only alert ($72,000 bill) | **N/A today** (free tiers can't overbill). | MVP: for every usage-billed service, set a **hard cap** that stops spend, not just an alert: Neon/Postgres compute limit, Cloudflare Workers usage limits, any LLM provider's monthly hard limit, plus a kill switch env var that turns off ingest. MarginCap's own `canSpend()` pattern applies to MarginCap itself. |

@@ -78,7 +78,7 @@
 
 ### 11. Collection of unnecessary data — **Partly open** (Medium)
 - **Site:** collects only email + referral tag. OK.
-- **Open (you):** the Stripe checkout asks for a **phone number** and offers a "Business name" field. Neither is needed. Stripe Dashboard → Payment Links → your link → Edit → turn off phone-number collection and the optional business-name field.
+- **Open (you):** the Stripe checkout asks for a **phone number** and offers a "Business name" field. Neither is needed. Keeping phone numbers also creates TCPA exposure (47 U.S.C. §227; $500–$1,500 per unsolicited text) if anyone ever texts them. The privacy policy now commits to never texting. Stripe Dashboard → Payment Links → your link → Edit → turn off phone-number collection and the optional business-name field.
 - **Laws:** GDPR Art 5(1)(c) data minimisation · PIPEDA Principle 4.4.
 
 ### 12. Collection of sensitive data — **Not applicable (verified)**

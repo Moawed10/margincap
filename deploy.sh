@@ -14,6 +14,16 @@ case "$TARGET" in
   *) echo "Usage: ./deploy.sh [production|staging]" >&2; exit 2 ;;
 esac
 
+# Static assets on Pages are free and unlimited; Functions/_worker.js are billed as Workers requests.
+# Refuse to deploy server-side code until someone has consciously set spend caps for it.
+if [ -e site/_worker.js ] || [ -d site/functions ] || [ -d functions ]; then
+  if [ "${ALLOW_FUNCTIONS:-0}" != 1 ]; then
+    echo "✗  Server-side code found (_worker.js or functions/). It makes requests billable." >&2
+    echo "   Set spend limits first, then re-run with ALLOW_FUNCTIONS=1." >&2
+    exit 1
+  fi
+fi
+
 if grep -q 'buy.stripe.com/test_' site/index.html; then
   echo "⚠  STRIPE_PREORDER_LINK is still the TEST-mode link — fine for a dry run, swap it before sharing the site."
 fi
