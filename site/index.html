@@ -20,10 +20,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://margincap.dev/og.png">
 <link rel="canonical" href="https://margincap.dev/">
-<!-- Warm up the two hosts a visitor hits next, so checkout and signup start instantly -->
-<link rel="preconnect" href="https://buy.stripe.com">
-<link rel="preconnect" href="https://formspree.io">
-<link rel="dns-prefetch" href="https://js.stripe.com">
+<!-- Stripe/Formspree are preconnected only on intent (hover/focus), see script, so no visitor IP reaches them on page load -->
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <!-- Structured data: lets search engines and AI answer engines read the product, price and FAQ -->
@@ -71,10 +68,10 @@
     --text: #16181d;
     --muted: #5d636e;
     --border: #e4e6e3;
-    --accent: #059669;
+    --accent: #047857; /* 5.3:1 on bg, 5.5:1 under white text (AA) */
     --accent-ink: #ffffff;
     --accent-soft: #e7f6f0;
-    --neg: #dc2626;
+    --neg: #b91c1c;
     --neg-soft: #fdecec;
     --code-bg: #14171c;
     --code-text: #e6e8eb;
@@ -266,6 +263,8 @@
   /* 16px minimum: anything smaller makes iOS Safari zoom the page on focus */
   form.waitlist input[type=email] { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: 16px var(--sans); transition: border-color 150ms ease; }
   form.waitlist input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .skip { position: absolute; left: 12px; top: -48px; z-index: 30; background: var(--accent); color: var(--accent-ink); padding: 10px 14px; border-radius: 8px; font-weight: 600; text-decoration: none; }
+  .skip:focus { top: 12px; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .hp { position: absolute; left: -9999px; }
   .form-msg { min-height: 24px; margin-top: 12px; font-size: 14px; color: var(--muted); transition: opacity 200ms ease; }
@@ -273,6 +272,7 @@
   .form-msg.err { color: var(--neg); }
   .form-msg.show { animation: msg-in 200ms var(--ease-out); }
   @keyframes msg-in { from { opacity: 0; transform: translateY(-4px); } }
+  .consent { max-width: 480px; margin: 10px auto 0; font-size: 13px; color: var(--muted); }
   .or-preorder { margin-top: 18px; font-size: 14px; color: var(--muted); }
 
   /* post-payment banner (Stripe redirects back with ?preorder=thanks) */
@@ -304,6 +304,7 @@
   }
 
   footer { border-top: 1px solid var(--border); padding: 28px 0 calc(28px + env(safe-area-inset-bottom)); font-size: 14px; color: var(--muted); }
+  footer .tm { flex-basis: 100%; font-size: 12px; }
   footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
   /* ---------- Motion ----------
@@ -375,11 +376,12 @@
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 
 <nav>
   <div class="wrap">
     <a href="#" class="logo" aria-label="MarginCap home">
-      <span class="logo-mark"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4l5 4.5L13 4v8"/></svg></span>
+      <span class="logo-mark"><svg aria-hidden="true" focusable="false" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4l5 4.5L13 4v8"/></svg></span>
       MarginCap
     </a>
     <div class="nav-links">
@@ -392,10 +394,11 @@
 </nav>
 
 <div class="thanks" role="status" hidden>
-  <div><b>You're a founding member.</b><span>$19/mo locked for life. I'll email you before launch — reply any time with questions.</span></div>
+  <div><b>You're a founding member.</b><span>$19/mo locked while you stay subscribed. I'll email you before launch — reply any time with questions.</span></div>
   <button type="button" aria-label="Dismiss">×</button>
 </div>
 
+<main id="main" tabindex="-1">
 <header class="hero">
   <div class="wrap hero-grid">
     <div class="hero-in">
@@ -404,13 +407,13 @@
       <p class="lead">MarginCap joins your LLM spend with your Stripe revenue, so you see each customer's margin and can cap the ones draining you. 5-minute setup. Never sees your prompts.</p>
       <div class="cta-row">
         <a href="#waitlist" class="btn btn-primary">Get early access</a>
-        <a href="#" class="btn btn-ghost js-preorder">Pre-order: $19/mo for life <span class="arrow">→</span></a>
+        <a href="#" class="btn btn-ghost js-preorder">Pre-order: $19/mo founding price <span class="arrow">→</span></a>
       </div>
-      <p class="fine">Works with OpenAI, Anthropic, OpenRouter &amp; Gemini · TypeScript first, Python next</p>
+      <p class="fine"><b>Pre-launch:</b> MarginCap is in development. Planned at launch: OpenAI, Anthropic, OpenRouter &amp; Gemini, TypeScript SDK first.</p>
     </div>
 
     <div class="mock" role="img" aria-label="Example MarginCap dashboard showing two customers with negative margin">
-      <div class="mock-head"><span><b>Margin by customer</b> · last 30 days</span><span class="pill">2 losing money</span></div>
+      <div class="mock-head"><span><b>Margin by customer</b> · example data</span><span class="pill">2 losing money</span></div>
       <table>
         <thead><tr><th>Customer</th><th class="r hide-sm">MRR</th><th class="r">AI cost</th><th class="r">Margin</th><th><span class="sr-only">Action</span></th></tr></thead>
         <tbody>
@@ -468,24 +471,25 @@
   <div class="wrap">
     <div class="eyebrow">What you get</div>
     <h2>Know who's profitable. Stop who isn't.</h2>
+    <!-- Feature icons adapted from Feather (feathericons.com), MIT License, © Cole Bemis -->
     <div class="features stagger">
       <div class="card reveal">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div>
+        <div class="feature-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div>
         <h3>Margin per customer</h3>
         <p>Revenue minus AI cost for every Stripe customer, with a 30-day trend.</p>
       </div>
       <div class="card reveal">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+        <div class="feature-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
         <h3>Cost per feature</h3>
         <p>See which feature eats the budget: "summarize", "chat", that agent loop.</p>
       </div>
       <div class="card reveal">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+        <div class="feature-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
         <h3>Alerts</h3>
         <p>Slack or email when a customer's AI cost passes X% of what they pay, or spikes 3× overnight.</p>
       </div>
       <div class="card reveal">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+        <div class="feature-icon"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
         <h3>Hard caps</h3>
         <p><code>canSpend(customerId)</code> returns allow, warn or block, so one runaway loop can't eat your month.</p>
       </div>
@@ -529,7 +533,7 @@
         </ul>
       </div>
       <div class="card plan featured reveal">
-        <span class="badge">Most popular</span>
+        <span class="badge">Recommended</span>
         <h3>Indie</h3>
         <div class="price">$29<small>/mo</small></div>
         <ul>
@@ -551,8 +555,8 @@
     </div>
     <div class="founding reveal">
       <div>
-        <h3>Founding member: $19/mo on Indie, locked for life</h3>
-        <p>First 50 people only. Charged today, fully refunded on request any time before launch. <span class="js-launch-line">Launching soon.</span></p>
+        <h3>Founding member: $19/mo on Indie, locked while you stay subscribed</h3>
+        <p>Limited to the first 50 founding members. <b>US$19/month, charged today and monthly until you cancel</b>; taxes extra where they apply. Full refund on request any time before launch. <span class="js-launch-line">Launch date to be announced.</span> <a href="/terms#preorder">Pre-order terms</a></p>
       </div>
       <a href="#" class="btn btn-primary js-preorder">Pre-order for $19 <span class="arrow">→</span></a>
     </div>
@@ -566,7 +570,7 @@
     <div class="faq">
       <details>
         <summary>How is this different from Langfuse or Helicone?</summary>
-        <p>They're observability tools. They show what a user <em>cost</em>, but they don't know what that user <em>pays</em> you. MarginCap joins the two and gives you margin. (Helicone has been in maintenance mode since its acquisition. If you're on it, we'll help you switch.)</p>
+        <p>They're observability tools. They show what a user <em>cost</em>, but they don't know what that user <em>pays</em> you. MarginCap joins the two and gives you margin.</p>
       </details>
       <details>
         <summary>Can't Stripe's token billing do this?</summary>
@@ -599,14 +603,17 @@
       <button type="submit" class="btn btn-primary"><span class="label">Get early access</span></button>
     </form>
     <div class="form-msg" role="status" aria-live="polite"></div>
-    <p class="or-preorder">Want to lock in $19/mo for life? <a href="#" class="js-preorder">Pre-order a founding spot →</a></p>
+    <p class="consent">By joining, you agree to get emails from MarginCap about the launch. No spam, unsubscribe any time. See our <a href="/privacy">privacy policy</a>.</p>
+    <p class="or-preorder">Want the $19/mo founding price? <a href="#" class="js-preorder">Pre-order a founding spot →</a></p>
   </div>
 </section>
+</main>
 
 <footer>
   <div class="wrap">
     <span>© <span class="js-year">2026</span> MarginCap</span>
-    <span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="mailto:hello@margincap.dev" class="js-email">hello@margincap.dev</a></span>
+    <span><a href="/support">Support</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="mailto:hello@margincap.dev" class="js-email">hello@margincap.dev</a></span>
+    <small class="tm">OpenAI, Anthropic, Gemini, OpenRouter, Stripe, Langfuse and Helicone are trademarks of their respective owners. MarginCap is independent and not affiliated with them.</small>
   </div>
 </footer>
 
@@ -650,6 +657,13 @@
   document.querySelectorAll(".js-email").forEach((a) => { a.href = "mailto:" + CONFIG.CONTACT_EMAIL; a.textContent = CONFIG.CONTACT_EMAIL; });
   document.querySelectorAll(".js-year").forEach((el) => (el.textContent = new Date().getFullYear()));
 
+  // Preconnect to Stripe/Formspree only once the visitor shows intent, so no IP is sent to them on page load
+  const warmed = new Set();
+  const warm = (origin) => { if (warmed.has(origin)) return; warmed.add(origin);
+    const l = document.createElement("link"); l.rel = "preconnect"; l.href = origin; document.head.appendChild(l); };
+  document.querySelectorAll(".js-preorder").forEach((a) => ["pointerenter", "focus"].forEach((ev) => a.addEventListener(ev, () => warm("https://buy.stripe.com"), { once: true })));
+  document.getElementById("email").addEventListener("focus", () => warm("https://formspree.io"), { once: true });
+
   // Thank-you banner after Stripe redirects back with ?preorder=thanks
   const thanks = document.querySelector(".thanks");
   if (params.get("preorder") === "thanks") {
@@ -683,8 +697,15 @@
   // Remember who already signed up on this device, so a double-click, refresh or repeat visit
   // doesn't send a duplicate (idempotency). Storage can be blocked, so every access is guarded.
   const SIGNED_KEY = "mc_waitlist";
+  // Only a SHA-256 hash is stored, never the email itself (see /privacy)
+  const hashEmail = async (email) => {
+    try {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(email));
+      return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    } catch { return null; }
+  };
   const signedUp = () => { try { return JSON.parse(localStorage.getItem(SIGNED_KEY) || "[]"); } catch { return []; } };
-  const markSigned = (email) => { try { localStorage.setItem(SIGNED_KEY, JSON.stringify([...new Set([...signedUp(), email])])); } catch {} };
+  const markSigned = (hash) => { if (!hash) return; try { localStorage.setItem(SIGNED_KEY, JSON.stringify([...new Set([...signedUp(), hash])])); } catch {} };
   let inFlight = null;
 
   form.addEventListener("submit", async (e) => {
@@ -694,7 +715,8 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setMsg("Please enter a valid email.", "err");
     if (!CONFIG.WAITLIST_ENDPOINT) return setMsg("Waitlist isn't connected yet (set WAITLIST_ENDPOINT).", "err");
     if (inFlight === email) return;
-    if (signedUp().includes(email)) { form.reset(); return setMsg("You're already on the list. See you at launch.", "ok"); }
+    const emailHash = await hashEmail(email);
+    if (emailHash && signedUp().includes(emailHash)) { form.reset(); return setMsg("You're already on the list. See you at launch.", "ok"); }
 
     // Optimistic: confirm instantly, roll back only if the request fails
     inFlight = email;
@@ -709,7 +731,7 @@
       });
       if (res.status === 429) throw new Error("rate");
       if (!res.ok) throw new Error(res.status);
-      markSigned(email);
+      markSigned(emailHash);
     } catch (err) {
       form.email.value = email; // give their input back so they can retry
       // 429 = Formspree rate limit or the plan's monthly cap; either way, don't lose the lead

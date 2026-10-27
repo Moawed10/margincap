@@ -9,46 +9,75 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="/page.css">
 <title>Privacy policy — MarginCap</title>
-<meta name="description" content="What MarginCap collects, why, and how to get it deleted.">
+<meta name="description" content="What MarginCap collects, why, who processes it, and how to get it deleted. Includes our cookie policy.">
 <link rel="canonical" href="https://margincap.dev/privacy">
 </head>
 <body>
-<header><div class="wrap"><a href="/" class="logo"><span class="logo-mark"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4l5 4.5L13 4v8"/></svg></span>MarginCap</a></div></header>
-<main><div class="wrap">
+<a class="skip" href="#main">Skip to content</a>
+<header><div class="wrap"><a href="/" class="logo"><span class="logo-mark"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4l5 4.5L13 4v8"/></svg></span>MarginCap</a></div></header>
+<main id="main" tabindex="-1"><div class="wrap">
   <h1>Privacy policy</h1>
-  <p class="meta">Last updated October 26, 2026</p>
+  <p class="meta">Effective October 26, 2026</p>
 
-  <p>MarginCap is built and run by one independent developer<!-- TODO(owner): ", [your legal name / business], [country]" -->. This page covers the pre-launch website at margincap.dev. It will be updated before the product itself launches.</p>
+  <p>This policy covers the pre-launch MarginCap website (margincap.dev): the waitlist and the founding-member pre-order. MarginCap itself is still in development; this policy will be updated, and waitlist members emailed, before the product launches.</p>
 
-  <h2>What we collect</h2>
+  <h2 id="who">Who we are</h2>
+  <!-- TODO(owner): replace this paragraph with: "MarginCap is operated by [legal name / business name], [street address, city, province/state, postal code, country]." Required before taking live payments. -->
+  <p>MarginCap is operated by its founder, an independent developer. The operator's full legal name and business address will be listed here before paid plans go live. Contact: <a href="mailto:hello@margincap.dev">hello@margincap.dev</a>.</p>
+  <p>We are the "controller" of the personal data described below (the party responsible for it).</p>
+
+  <h2 id="collect">What we collect, why, and on what basis</h2>
+  <table>
+    <thead><tr><th scope="col">Data</th><th scope="col">When</th><th scope="col">Why</th><th scope="col">Legal basis (EU/UK)</th></tr></thead>
+    <tbody>
+      <tr><td>Email address</td><td>You join the waitlist</td><td>To email you about MarginCap's launch</td><td>Your consent, which you can withdraw any time</td></tr>
+      <tr><td>Referral tag (e.g. "reddit"), taken from the link you arrived on</td><td>You join the waitlist or pre-order</td><td>To learn which channels bring interested people</td><td>Legitimate interest</td></tr>
+      <tr><td>Name, email, billing country and address, payment status</td><td>You pre-order (entered on Stripe's checkout)</td><td>To take payment, issue refunds and keep tax records</td><td>Contract; legal obligation</td></tr>
+      <tr><td>IP address and browser details in server logs</td><td>Any visit</td><td>To deliver the site and protect it from abuse</td><td>Legitimate interest</td></tr>
+    </tbody>
+  </table>
+  <p>We don't collect sensitive data (health, biometrics, government IDs, precise location). Card numbers go directly to Stripe; we never see or store them. We don't use AI models on your data.</p>
+
+  <h2 id="cookies">Cookies and similar technologies (cookie policy)</h2>
   <ul>
-    <li><strong>Your email</strong>, if you join the waitlist, plus the link you arrived from (for example "reddit"), so we know which channels work.</li>
-    <li><strong>Payment details</strong>, if you pre-order. These go directly to Stripe; we never see or store your card number. We receive your name, email, country and payment status from Stripe.</li>
-    <li><strong>Anonymous usage statistics</strong> (page views, load performance) via Cloudflare Web Analytics, which uses no cookies and does not track you across sites.</li>
+    <li><strong>margincap.dev sets no cookies.</strong> No advertising, analytics or tracking cookies, and no tracking pixels.</li>
+    <li>If you join the waitlist, your browser stores one item in local storage, <code>mc_waitlist</code>: a one-way SHA-256 hash of your email, so the form can tell you you're already signed up. It contains no readable email, never leaves your device, and you can clear it in your browser settings at any time. It is strictly necessary for that feature, so it doesn't require consent.</li>
+    <li>If you click a pre-order button, you go to Stripe's checkout page, which sets its own cookies for fraud prevention under <a href="https://stripe.com/privacy">Stripe's privacy policy</a>.</li>
+    <li><strong>Analytics:</strong> we don't currently run any analytics. If we add Cloudflare Web Analytics (cookieless, no cross-site tracking), we will update this section before switching it on.</li>
+    <li><strong>Do Not Track / Global Privacy Control:</strong> we don't track you across sites, so there is nothing for these signals to switch off.</li>
   </ul>
 
-  <h2>What we don't do</h2>
+  <h2 id="processors">Who processes your data for us</h2>
+  <table>
+    <thead><tr><th scope="col">Service</th><th scope="col">What for</th><th scope="col">Data it receives</th></tr></thead>
+    <tbody>
+      <tr><td><a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a></td><td>Website hosting</td><td>IP address, browser details (request logs)</td></tr>
+      <tr><td><a href="https://formspree.io/legal/privacy-policy/">Formspree</a></td><td>Storing waitlist signups</td><td>Email, referral tag, IP address</td></tr>
+      <tr><td><a href="https://stripe.com/privacy">Stripe</a></td><td>Pre-order payments</td><td>Everything you enter on checkout</td></tr>
+    </tbody>
+  </table>
+  <p>We don't sell or share your personal information with advertisers or data brokers, and we don't use it for targeted advertising.</p>
+
+  <h2 id="transfers">International transfers</h2>
+  <p>These providers may process data in the United States and other countries. Where EU/UK data leaves those regions, it is protected by the providers' Standard Contractual Clauses and/or the EU–US Data Privacy Framework.</p>
+
+  <h2 id="retention">How long we keep it</h2>
   <ul>
-    <li>We don't sell or share your data with advertisers.</li>
-    <li>We don't use advertising or tracking cookies. The site stores one item in your browser (whether you've already joined the waitlist) so you don't sign up twice. It never leaves your device.</li>
+    <li>Waitlist emails: until 12 months after launch, or until you unsubscribe or ask us to delete them.</li>
+    <li>Payment records: as long as tax law requires (typically 6–7 years).</li>
+    <li>Server logs: as kept by Cloudflare under its policy.</li>
   </ul>
 
-  <h2>Who processes your data</h2>
-  <ul>
-    <li><strong>Formspree</strong> — stores waitlist signups.</li>
-    <li><strong>Stripe</strong> — processes pre-order payments.</li>
-    <li><strong>Cloudflare</strong> — hosts the site and provides cookieless analytics.</li>
-  </ul>
+  <h2 id="rights">Your rights</h2>
+  <p>You can ask us to access, correct, delete or export your data, to stop using it, or object to how we use it, and withdraw consent at any time. Email <a href="mailto:hello@margincap.dev">hello@margincap.dev</a> from the address you signed up with; we reply within 30 days. Deleting your data also cancels and refunds any pre-order. Every email we send includes an unsubscribe option.</p>
+  <p>If you're unhappy with our answer you can complain to your data protection authority: in the EU your national authority, in the UK the ICO, in Canada the Office of the Privacy Commissioner of Canada.</p>
 
-  <h2>How long we keep it</h2>
-  <p>Waitlist emails are kept until launch plus 12 months, or until you ask us to delete them. Payment records are kept as long as tax law requires.</p>
+  <h2 id="children">Children</h2>
+  <p>MarginCap is a business tool and isn't directed at children under 16. We don't knowingly collect their data.</p>
 
-  <h2>Your rights: access, correction, deletion</h2>
-  <p>Email <a href="mailto:hello@margincap.dev">hello@margincap.dev</a> from the address you signed up with and we'll send you your data, correct it, or delete it within 30 days. Deleting your data also cancels any pre-order and refunds it.</p>
-
-  <h2>Changes</h2>
-  <p>If this policy changes in a way that matters, we'll email people on the waitlist before it takes effect.</p>
+  <h2 id="changes">Changes</h2>
+  <p>If this policy changes materially, we'll update the effective date and email waitlist members before the change applies.</p>
 </div></main>
-<footer><div class="wrap"><span>© 2026 MarginCap</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="mailto:hello@margincap.dev">hello@margincap.dev</a></span></div></footer>
+<footer><div class="wrap"><span>© 2026 MarginCap</span><span><a href="/support">Support</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="mailto:hello@margincap.dev">hello@margincap.dev</a></span></div></footer>
 </body>
 </html>

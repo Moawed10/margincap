@@ -13,7 +13,7 @@ ctype()  { curl -s -o /dev/null -w "%{content_type}" "$BASE$1"; }
 echo "Smoke testing $BASE"
 
 # Pages and assets that must exist
-for p in / /privacy /terms /og.png /favicon.svg /apple-touch-icon.png /robots.txt /sitemap.xml; do
+for p in / /privacy /terms /support /og.png /favicon.svg /apple-touch-icon.png /robots.txt /sitemap.xml; do
   s=$(status "$p"); [ "$s" = 200 ] && ok "$p → 200" || bad "$p → $s (want 200)"
 done
 [[ "$(ctype /og.png)" == image/png* ]] && ok "og.png is image/png" || bad "og.png content type: $(ctype /og.png)"
@@ -36,6 +36,10 @@ grep -q 'buy.stripe.com/REPLACE_ME' <<<"$HTML" && bad "Stripe link is a placehol
 grep -q 'buy.stripe.com/test_' <<<"$HTML" && echo "  ⚠ Stripe link is TEST mode"
 grep -q 'property="og:image"' <<<"$HTML" && ok "og:image tag" || bad "missing og:image"
 grep -q 'href="/privacy"' <<<"$HTML" && grep -q 'href="/terms"' <<<"$HTML" && ok "privacy + terms linked" || bad "footer legal links missing"
+grep -q 'href="/support"' <<<"$HTML" && ok "support page linked" || bad "support link missing"
+grep -q 'class="consent"' <<<"$HTML" && ok "waitlist consent notice" || bad "waitlist consent notice missing"
+grep -qiE 'for life|Most popular' <<<"$HTML" && bad "misleading claim (for life / Most popular) is back" || ok "no misleading claims"
+grep -q 'rel="preconnect" href="https://buy.stripe.com"' <<<"$HTML" && bad "third-party preconnect on page load" || ok "no third-party contact on load"
 python3 - "$HTML" <<'PY' && ok "JSON-LD parses (SoftwareApplication + FAQPage)" || bad "JSON-LD invalid"
 import json, re, sys
 m = re.search(r'<script type="application/ld\+json">(.*?)</script>', sys.argv[1], re.S)

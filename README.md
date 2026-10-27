@@ -8,6 +8,7 @@ Margin per customer for AI SaaS: joins LLM spend with Stripe revenue, alerts on 
 |---|---|---|
 | `site/index.html` | Landing page (single file, no build step) | **Yes** — deploy only this folder |
 | `validation-kit.md` | 3-day validation plan, outreach templates, 27 prioritised threads, tracker | No — private notes |
+| `compliance-audit.md` | Legal/compliance audit: 20 checks + business details, with fixes and open items | No |
 | `production-checklist.md` | 40-item ship checklist: done / your steps / MVP | No |
 | `tests/smoke.sh` | Smoke + regression tests; run automatically by `deploy.sh` | No |
 | `ux-checklist.md` | 20 UX details (from the reel) mapped to landing vs. dashboard MVP | No |
