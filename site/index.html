@@ -493,6 +493,13 @@
 
   .motion [data-reveal] { opacity: 0; }
 
+  /* Lenis smooth scrolling (desktop wheel/trackpad only; touch stays native) */
+  html.lenis { scroll-behavior: auto; }
+  html.lenis, html.lenis body { height: auto; }
+  .lenis:not(.lenis-autoToggle).lenis-stopped { overflow: clip; }
+  .lenis [data-lenis-prevent-horizontal] { overscroll-behavior: contain; }
+  .lenis.lenis-smooth iframe { pointer-events: none; }
+
   @supports (corner-shape: squircle) {
     .app, .stage, .founding, .btn, .seg, .snippet, .compare > div, .alerts li, .tip, .thanks, form.waitlist input[type=email] { corner-shape: squircle; }
     .app { border-radius: 30px; } .stage, .founding { border-radius: 36px; } .btn, form.waitlist input[type=email] { border-radius: 20px; }
@@ -621,7 +628,7 @@
           <div class="kpi"><dt>Losing money</dt><dd class="num loss"><span data-kpi="losing">2</span><small data-kpi="losing-note">customers, not capped</small></dd></div>
         </dl>
 
-        <div class="table-scroll">
+        <div class="table-scroll" data-lenis-prevent-horizontal>
           <table class="grid">
             <thead>
               <tr>
@@ -887,6 +894,7 @@
 </footer>
 
 <script src="/vendor/motion-12.23.12.js"></script>
+<script src="/vendor/lenis-1.3.26.js"></script>
 <script>
   // ---- CONFIG: fill these in before deploying ----
   const CONFIG = {
@@ -1341,6 +1349,9 @@
     if (!target) return;
     [target, ...$$("[data-reveal]", target)].forEach((el) => el.matches("[data-reveal]") && reveal(el));
   });
+
+  // ---------- Smooth scrolling: wheel and trackpad glide; anchors land below the sticky nav ----------
+  if (window.Lenis && !reduce) new Lenis({ autoRaf: true, anchors: true });
 
   // ---------- Nav: hairline once scrolled, sliding pill on the section you're in ----------
   const nav = $("nav"), pill = $(".nav-pill");
