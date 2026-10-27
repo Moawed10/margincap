@@ -130,6 +130,25 @@ Adapt the first line to the post. Keep the free tip; it's what earns the reply.
 
 > Body: summarise the patterns you found (spreadsheet + Stripe export, Langfuse with no revenue data, rate limits as a blunt fix, a 50x spread between heavy and light users). Include the DIY steps from Template A. End with: "I'm building a tool for this. If you want early access or just want to tell me why it's a bad idea, comment or DM." Link only if the sub's rules allow it, otherwise "link in profile".
 
+### E. Launch email to the waitlist (legally required footer)
+Send from `hello@margincap.dev`. Only email people who joined the waitlist (they consented on the form). **Never remove the footer.**
+
+> **Subject:** MarginCap is live: see which customers your AI features lose money on
+>
+> Hi,
+>
+> You joined the MarginCap waitlist, so you're first to know: it's live. [One line on what they can do now + link to https://margincap.dev]
+>
+> Founding members keep $19/mo while they stay subscribed: [link]
+>
+> Omar
+>
+> —
+> MarginCap · Omar Kamel · [your mailing address]
+> You're getting this because you joined the waitlist at margincap.dev. Don't want these? Reply "unsubscribe" and you won't hear from us again.
+
+Footer rules (CASL s.6 + CAN-SPAM): sender name, a valid mailing address, and a working unsubscribe that you honour within 10 business days (CASL) / 10 days (CAN-SPAM). Keep a list of unsubscribes and remove them before every send.
+
 ### Call script (15 min)
 1. "Walk me through the last time AI costs surprised you." (Let them talk.)
 2. "What did you do about it?" (Shows the current workaround, which is your real competitor.)

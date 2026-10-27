@@ -14,7 +14,7 @@
 | Open — needs you (accounts/legal details) | 6 (2 Critical before live payments) |
 | Not applicable to this site | 2 |
 
-**Resolved:** operator name is on the site and `hello@margincap.dev` works. **Before live payments:** add a PO-box/virtual postal address and register the "MarginCap" business name in New Brunswick. **High:** online cancellation (Stripe customer portal) and enforcing the "first 50" limit in Stripe.
+**Resolved:** operator name is on the site, `hello@margincap.dev` works, and the mailing address is given privately on receipts and in emails. **Before live payments:** set the Stripe support address and register the "MarginCap" business name in New Brunswick. **High:** online cancellation (Stripe customer portal) and enforcing the "first 50" limit in Stripe.
 
 ---
 
@@ -132,19 +132,24 @@
 
 ---
 
-## Business details — **Partly open** (Medium)
+## Business details — **Done, with a private-address approach** (Low)
 
 | Detail | Displayed? | Verified? | Required by |
 |---|---|---|---|
 | Trading name (MarginCap) | Yes, every page | ✓ | — |
 | Operator name — "Omar Kamel" | `/privacy#who`, `/terms#who`, homepage footer | ✓ (smoke test checks it) | EU E-Commerce Directive Art 5 · UK E-Commerce Regs 2002 reg 6 · CRD Art 6 · provincial internet-agreement rules |
-| Geographic address | **No — removed at the owner's request** (privacy) | ✗ | EU E-Commerce Directive Art 5(1)(b) · UK E-Commerce Regs reg 6(1)(b) · CRD Art 6(1)(c) · CASL s.6(2) / CAN-SPAM (a postal address in every commercial email) |
+| Mailing address | **Not on the website** (owner's privacy). Given privately instead: on every Stripe receipt/invoice (Stripe Public details → support address) and in the footer of every commercial email | ✓ once Stripe live mode is set up | EU E-Commerce Directive Art 5(1)(b) · UK E-Commerce Regs reg 6(1)(b) · CRD Art 6(1)(c) · CASL s.6(2) / CAN-SPAM (a postal address in every commercial email) |
 | Contact email `hello@margincap.dev` | Every page | ✓ forwards to the owner's inbox | all of the above |
 | Domain margincap.dev | Canonical, OG, JSON-LD | ✓ registered, HTTPS live | — |
 | Governing law | `/terms#law`: New Brunswick + federal laws of Canada | ✓ | — |
 
-**Open (you), before live payments or the first launch email:**
-1. Get a **non-home postal address** (PO box at Canada Post, or a virtual mailbox) and add it to `/privacy#who` and `/terms#who`. EU/UK consumer rules expect a geographic address for online sales, and CASL/CAN-SPAM require a valid postal address in every commercial email. A PO box is accepted for the email requirement.
+**Approach chosen (option A):** the website shows the operator name only; the mailing address is disclosed privately to the people who need it.
+- **Emails:** every launch/marketing email ends with the footer in `validation-kit.md` → *Launch email*, which includes the mailing address and an unsubscribe line. This satisfies CASL s.6(2) and CAN-SPAM, which require it **in the email**, not on the website.
+- **Payments:** the address is set as the support address in Stripe's Public details, so it appears on every receipt and invoice. This gives Canadian buyers the business details at the point of sale.
+- **Residual risk (Low):** EU/UK e-commerce and consumer-contract rules expect a geographic address to be easily accessible on the site itself. MarginCap sells mainly to businesses, which lowers this. **Revisit:** switch to a PO box or virtual mailbox (~$10–20/month) once paying customers arrive, and put it on `/privacy#who` and `/terms#who`.
+
+**Still open (you):**
+1. Stripe → Settings → Public details → add your support address (in live mode).
 2. Register the business name **"MarginCap"** with Service New Brunswick (Partnerships and Business Names Registration Act).
 
 ---
