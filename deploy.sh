@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deploy site/ (and only site/) to Cloudflare Pages project "margincap", then smoke test it.
-#   ./deploy.sh            → production  https://margincap-ahy.pages.dev
+#   ./deploy.sh            → production  https://margincap.dev
 #   ./deploy.sh staging    → staging     https://staging.margincap-ahy.pages.dev
 # First time: run `npx wrangler login` yourself (it opens a browser to authorize).
 set -euo pipefail
@@ -9,7 +9,7 @@ cd "$(dirname "$0")"
 PROJECT="margincap"
 TARGET="${1:-production}"
 case "$TARGET" in
-  production) BRANCH=main;    URL="https://margincap-ahy.pages.dev" ;;
+  production) BRANCH=main;    URL="https://margincap.dev" ;;
   staging)    BRANCH=staging; URL="https://staging.margincap-ahy.pages.dev" ;;
   *) echo "Usage: ./deploy.sh [production|staging]" >&2; exit 2 ;;
 esac

@@ -14,7 +14,7 @@
 | Open — needs you (accounts/legal details) | 6 (2 Critical before live payments) |
 | Not applicable to this site | 2 |
 
-**Critical before you take a single live payment:** (1) operator legal name + address on the site, (2) a working `hello@margincap.dev` inbox. **High:** online cancellation (Stripe customer portal) and enforcing the "first 50" limit in Stripe.
+**Critical items resolved:** operator name + address are on the site and `hello@margincap.dev` works. **Before live payments:** register the "MarginCap" business name in New Brunswick. **High:** online cancellation (Stripe customer portal) and enforcing the "first 50" limit in Stripe.
 
 ---
 
@@ -132,10 +132,20 @@
 
 ---
 
-## Business details — **Critical, open**
+## Business details — **Done** (was Critical)
 
 | Detail | Displayed? | Verified? | Required by |
 |---|---|---|---|
+| Trading name (MarginCap) | Yes, every page | ✓ | — |
+| Operator legal name — Omar Kamel | `/privacy#who`, `/terms#who`, `/support`, homepage footer | ✓ (smoke test checks it) | EU E-Commerce Directive Art 5 · UK E-Commerce Regs 2002 reg 6 · CRD Art 6 · provincial internet-agreement rules |
+| Geographic address | `/privacy`, `/terms`, `/support` | ✓ | same · CASL s.6(2) / CAN-SPAM (include it in every launch email) |
+| Contact email `hello@margincap.dev` | Every page | ✓ forwards to the owner's inbox (tested Oct 26, 2026) | all of the above |
+| Domain margincap.dev | Canonical, OG, JSON-LD | ✓ registered, HTTPS live | — |
+| Governing law | `/terms#law`: New Brunswick + federal laws of Canada | ✓ | — |
+
+**Still open (you):** register the business name **"MarginCap"** with Service New Brunswick. NB's *Partnerships and Business Names Registration Act* generally requires a sole proprietor who trades under a name other than their own to register it. It's a short online form and a small fee. Do it before switching Stripe to live mode.
+
+---|---|---|---|
 | Trading name (MarginCap) | Yes, every page | ✓ | — |
 | Operator legal name | **No** — placeholder text in privacy/terms | ✗ | EU E-Commerce Directive Art 5 · UK E-Commerce Regs 2002 reg 6 · CRD Art 6 · provincial internet-agreement rules |
 | Geographic address | **No** | ✗ | same as above · CASL s.6(2) (in every commercial email) · CAN-SPAM (postal address in emails) |

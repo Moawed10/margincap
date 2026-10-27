@@ -2,7 +2,7 @@
 # Smoke + regression checks against a deployed copy of site/.
 # Usage: tests/smoke.sh [base-url]   (default: production)
 set -uo pipefail
-BASE="${1:-https://margincap-ahy.pages.dev}"
+BASE="${1:-https://margincap.dev}"
 BASE="${BASE%/}"
 fail=0
 ok()   { printf "  ✓ %s\n" "$1"; }
@@ -36,6 +36,11 @@ grep -q 'buy.stripe.com/REPLACE_ME' <<<"$HTML" && bad "Stripe link is a placehol
 grep -q 'buy.stripe.com/test_' <<<"$HTML" && echo "  ⚠ Stripe link is TEST mode"
 grep -q 'property="og:image"' <<<"$HTML" && ok "og:image tag" || bad "missing og:image"
 grep -q 'href="/privacy"' <<<"$HTML" && grep -q 'href="/terms"' <<<"$HTML" && ok "privacy + terms linked" || bad "footer legal links missing"
+for p in /privacy /terms; do
+  P=$(curl -s "$BASE$p")
+  grep -q "Omar Kamel" <<<"$P" && grep -q "Fredericton" <<<"$P" && ok "$p shows operator name + address" || bad "$p missing operator details"
+  grep -q "will be listed here" <<<"$P" && bad "$p still has the operator placeholder" || true
+done
 grep -q 'href="/support"' <<<"$HTML" && ok "support page linked" || bad "support link missing"
 grep -q 'class="consent"' <<<"$HTML" && ok "waitlist consent notice" || bad "waitlist consent notice missing"
 grep -qiE 'for life|Most popular' <<<"$HTML" && bad "misleading claim (for life / Most popular) is back" || ok "no misleading claims"

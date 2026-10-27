@@ -58,7 +58,9 @@ Deploy: Cloudflare Pages / Netlify with **`site` as the publish directory**.
 - [x] Market research + validation of the idea
 - [x] Validation kit
 - [x] Landing page
-- [ ] Buy margincap.dev + getmargincap.com (check premium price + trademark first)
+- [x] margincap.dev bought, live with HTTPS; hello@ forwards to Gmail (SPF/DKIM/DMARC)
+- [x] Operator name + address on legal pages; governing law New Brunswick
+- [ ] Register "MarginCap" business name with Service New Brunswick
 - [x] Formspree endpoint + Stripe **test** link in CONFIG
 - [ ] Test checkout (card 4242…) + one test signup
 - [ ] Swap in the **live** Stripe link; fill LAUNCH_DATE / FOUNDER_LINE; deploy
