@@ -59,7 +59,8 @@ Deploy: Cloudflare Pages / Netlify with **`site` as the publish directory**.
 - [x] Validation kit
 - [x] Landing page
 - [x] margincap.dev bought, live with HTTPS; hello@ forwards to Gmail (SPF/DKIM/DMARC)
-- [x] Operator name + address on legal pages; governing law New Brunswick
+- [x] Operator name (Omar Kamel) on legal pages; governing law New Brunswick
+- [ ] Add a PO box / virtual mailbox address to legal pages (needed before live payments + launch emails)
 - [ ] Register "MarginCap" business name with Service New Brunswick
 - [x] Formspree endpoint + Stripe **test** link in CONFIG
 - [ ] Test checkout (card 4242…) + one test signup

@@ -38,7 +38,7 @@ grep -q 'property="og:image"' <<<"$HTML" && ok "og:image tag" || bad "missing og
 grep -q 'href="/privacy"' <<<"$HTML" && grep -q 'href="/terms"' <<<"$HTML" && ok "privacy + terms linked" || bad "footer legal links missing"
 for p in /privacy /terms; do
   P=$(curl -s "$BASE$p")
-  grep -q "Omar Kamel" <<<"$P" && grep -q "Fredericton" <<<"$P" && ok "$p shows operator name + address" || bad "$p missing operator details"
+  grep -q "operated by <strong>Omar Kamel</strong>" <<<"$P" && ok "$p shows operator name" || bad "$p missing operator name"
   grep -q "will be listed here" <<<"$P" && bad "$p still has the operator placeholder" || true
 done
 grep -q 'href="/support"' <<<"$HTML" && ok "support page linked" || bad "support link missing"

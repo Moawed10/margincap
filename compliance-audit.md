@@ -14,7 +14,7 @@
 | Open — needs you (accounts/legal details) | 6 (2 Critical before live payments) |
 | Not applicable to this site | 2 |
 
-**Critical items resolved:** operator name + address are on the site and `hello@margincap.dev` works. **Before live payments:** register the "MarginCap" business name in New Brunswick. **High:** online cancellation (Stripe customer portal) and enforcing the "first 50" limit in Stripe.
+**Resolved:** operator name is on the site and `hello@margincap.dev` works. **Before live payments:** add a PO-box/virtual postal address and register the "MarginCap" business name in New Brunswick. **High:** online cancellation (Stripe customer portal) and enforcing the "first 50" limit in Stripe.
 
 ---
 
@@ -132,30 +132,20 @@
 
 ---
 
-## Business details — **Done** (was Critical)
+## Business details — **Partly open** (Medium)
 
 | Detail | Displayed? | Verified? | Required by |
 |---|---|---|---|
 | Trading name (MarginCap) | Yes, every page | ✓ | — |
-| Operator legal name — Omar Kamel | `/privacy#who`, `/terms#who`, `/support`, homepage footer | ✓ (smoke test checks it) | EU E-Commerce Directive Art 5 · UK E-Commerce Regs 2002 reg 6 · CRD Art 6 · provincial internet-agreement rules |
-| Geographic address | `/privacy`, `/terms`, `/support` | ✓ | same · CASL s.6(2) / CAN-SPAM (include it in every launch email) |
-| Contact email `hello@margincap.dev` | Every page | ✓ forwards to the owner's inbox (tested Oct 26, 2026) | all of the above |
+| Operator name — "Omar Kamel" | `/privacy#who`, `/terms#who`, homepage footer | ✓ (smoke test checks it) | EU E-Commerce Directive Art 5 · UK E-Commerce Regs 2002 reg 6 · CRD Art 6 · provincial internet-agreement rules |
+| Geographic address | **No — removed at the owner's request** (privacy) | ✗ | EU E-Commerce Directive Art 5(1)(b) · UK E-Commerce Regs reg 6(1)(b) · CRD Art 6(1)(c) · CASL s.6(2) / CAN-SPAM (a postal address in every commercial email) |
+| Contact email `hello@margincap.dev` | Every page | ✓ forwards to the owner's inbox | all of the above |
 | Domain margincap.dev | Canonical, OG, JSON-LD | ✓ registered, HTTPS live | — |
 | Governing law | `/terms#law`: New Brunswick + federal laws of Canada | ✓ | — |
 
-**Still open (you):** register the business name **"MarginCap"** with Service New Brunswick. NB's *Partnerships and Business Names Registration Act* generally requires a sole proprietor who trades under a name other than their own to register it. It's a short online form and a small fee. Do it before switching Stripe to live mode.
-
----|---|---|---|
-| Trading name (MarginCap) | Yes, every page | ✓ | — |
-| Operator legal name | **No** — placeholder text in privacy/terms | ✗ | EU E-Commerce Directive Art 5 · UK E-Commerce Regs 2002 reg 6 · CRD Art 6 · provincial internet-agreement rules |
-| Geographic address | **No** | ✗ | same as above · CASL s.6(2) (in every commercial email) · CAN-SPAM (postal address in emails) |
-| Contact email `hello@margincap.dev` | Yes, every page | **✗ — mailbox doesn't exist** (domain not yet owned) | all of the above; also your own refund/cancel promises depend on it |
-| Domain margincap.dev | Used in canonical, OG, JSON-LD | **✗ — not registered yet** | (SEO + someone else could register it) |
-
-**Fix:** register the domain, set up Email Routing for `hello@`, and replace the `TODO(owner)` paragraph in `site/privacy.html` and `site/terms.html` with:
-> MarginCap is operated by **[legal name / business name]**, **[street, city, province/state, postal code, country]**. Contact: hello@margincap.dev.
-
-Keep Stripe in **test mode** until these are done.
+**Open (you), before live payments or the first launch email:**
+1. Get a **non-home postal address** (PO box at Canada Post, or a virtual mailbox) and add it to `/privacy#who` and `/terms#who`. EU/UK consumer rules expect a geographic address for online sales, and CASL/CAN-SPAM require a valid postal address in every commercial email. A PO box is accepted for the email requirement.
+2. Register the business name **"MarginCap"** with Service New Brunswick (Partnerships and Business Names Registration Act).
 
 ---
 
