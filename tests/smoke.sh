@@ -51,6 +51,11 @@ m = re.search(r'<script type="application/ld\+json">(.*?)</script>', sys.argv[1]
 types = {n["@type"] for n in json.loads(m.group(1))["@graph"]}
 sys.exit(0 if {"SoftwareApplication", "FAQPage"} <= types else 1)
 PY
+# Every same-origin script the page loads must exist (a missing vendor file breaks all interactions)
+for src in $(grep -o '<script src="/[^"]*"' <<<"$HTML" | sed 's/<script src="//; s/"$//'); do
+  code=$(curl -s -o /dev/null -w "%{http_code}" "$BASE$src")
+  [ "$code" = 200 ] && ok "$src → 200" || bad "$src → $code"
+done
 size=$(curl -s -o /dev/null -w "%{size_download}" "$BASE/")
 [ "$size" -lt 100000 ] && ok "homepage HTML ${size} bytes (< 100 KB)" || bad "homepage HTML ${size} bytes (budget 100 KB)"
 

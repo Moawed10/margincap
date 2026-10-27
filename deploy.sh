@@ -39,10 +39,25 @@ fi
 # Create the project on first run; ignore "already exists"
 npx --yes wrangler pages project create "$PROJECT" --production-branch main 2>/dev/null || true
 
-npx --yes wrangler pages deploy site --project-name "$PROJECT" --branch "$BRANCH" --commit-dirty=true
+LOG=$(mktemp)
+npx --yes wrangler pages deploy site --project-name "$PROJECT" --branch "$BRANCH" --commit-dirty=true | tee "$LOG"
+DEPLOYMENT=$(grep -oE 'https://[a-z0-9]+\.margincap-ahy\.pages\.dev' "$LOG" | head -1)
+rm -f "$LOG"
 echo "✓  Deployed $TARGET → $URL"
 
-echo; sleep 5   # give the edge a moment to pick up the new deployment
+# The edge can keep serving the previous deployment for a minute. Smoke test only once
+# $URL serves the same page as this deployment's own URL.
+if [ -n "$DEPLOYMENT" ]; then
+  # Ignore Cloudflare's email obfuscation, which re-encodes mailto links differently on every request
+  page() { curl -s "$1" | sed -E 's#<script data-cfasync[^>]*></script>##' | grep -v -E 'email-protection|__cf_email__|mailto:' | shasum | cut -c1-40; }
+  want=$(page "$DEPLOYMENT/")
+  for i in $(seq 1 24); do
+    [ "$(page "$URL/?deploycheck=$i")" = "$want" ] && break
+    [ "$i" = 24 ] && echo "⚠  $URL still serves an older page after 2 minutes; testing anyway."
+    sleep 5
+  done
+fi
+echo
 if ! tests/smoke.sh "$URL"; then
   echo
   echo "Rollback: Cloudflare dashboard → Workers & Pages → $PROJECT → Deployments →"
