@@ -17,7 +17,7 @@
 <header><div class="wrap"><a href="/" class="logo">MarginCap</a></div></header>
 <main id="main" tabindex="-1"><div class="wrap">
   <h1>Privacy policy</h1>
-  <p class="meta">Effective October 26, 2026</p>
+  <p class="meta">Effective October 26, 2026 · Updated October 27, 2026 (added Cloudflare Web Analytics)</p>
 
   <p>This policy covers the pre-launch MarginCap website (margincap.dev): the waitlist and the founding-member pre-order. MarginCap itself is still in development; this policy will be updated, and waitlist members emailed, before the product launches.</p>
 
@@ -43,7 +43,7 @@
     <li><strong>margincap.dev sets no cookies.</strong> No advertising, analytics or tracking cookies, and no tracking pixels.</li>
     <li>If you join the waitlist, your browser stores one item in local storage, <code>mc_waitlist</code>: a one-way SHA-256 hash of your email, so the form can tell you you're already signed up. It contains no readable email, never leaves your device, and you can clear it in your browser settings at any time. It is strictly necessary for that feature, so it doesn't require consent.</li>
     <li>If you click a pre-order button, you go to Stripe's checkout page, which sets its own cookies for fraud prevention under <a href="https://stripe.com/privacy">Stripe's privacy policy</a>.</li>
-    <li><strong>Analytics:</strong> we don't currently run any analytics. If we add Cloudflare Web Analytics (cookieless, no cross-site tracking), we will update this section before switching it on.</li>
+    <li><strong>Analytics:</strong> we use Cloudflare Web Analytics to count visits. A small script from Cloudflare (<code>static.cloudflareinsights.com</code>) reports which page you viewed, the site that sent you, your browser type, your country and page-load speed. It sets no cookies, uses no local storage or fingerprinting, and doesn't track you across sites or build a profile of you, so it doesn't require consent. Blocking it doesn't affect the site.</li>
     <li><strong>Do Not Track / Global Privacy Control:</strong> we don't track you across sites, so there is nothing for these signals to switch off.</li>
   </ul>
 
@@ -51,7 +51,7 @@
   <table>
     <thead><tr><th scope="col">Service</th><th scope="col">What for</th><th scope="col">Data it receives</th></tr></thead>
     <tbody>
-      <tr><td><a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a></td><td>Website hosting</td><td>IP address, browser details (request logs)</td></tr>
+      <tr><td><a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a></td><td>Website hosting and visit counts (Web Analytics)</td><td>IP address, browser details (request logs); page, referrer, browser type and country (analytics)</td></tr>
       <tr><td><a href="https://formspree.io/legal/privacy-policy/">Formspree</a></td><td>Storing waitlist signups</td><td>Email, referral tag, IP address</td></tr>
       <tr><td><a href="https://stripe.com/privacy">Stripe</a></td><td>Pre-order payments</td><td>Everything you enter on checkout</td></tr>
     </tbody>
@@ -79,5 +79,6 @@
   <p>If this policy changes materially, we'll update the effective date and email waitlist members before the change applies.</p>
 </div></main>
 <footer><div class="wrap"><span>© 2026 MarginCap</span><span><a href="/support">Support</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="mailto:hello@margincap.dev">hello@margincap.dev</a></span></div></footer>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "543656b8e8a546d3a2a0150f354b6b58"}'></script>
 </body>
 </html>

@@ -44,7 +44,8 @@ done
 grep -q 'href="/support"' <<<"$HTML" && ok "support page linked" || bad "support link missing"
 grep -q 'class="consent"' <<<"$HTML" && ok "waitlist consent notice" || bad "waitlist consent notice missing"
 grep -qiE 'for life|Most popular' <<<"$HTML" && bad "misleading claim (for life / Most popular) is back" || ok "no misleading claims"
-grep -q 'rel="preconnect" href="https://buy.stripe.com"' <<<"$HTML" && bad "third-party preconnect on page load" || ok "no third-party contact on load"
+grep -q 'rel="preconnect" href="https://buy.stripe.com"' <<<"$HTML" && bad "Stripe preconnect on page load" || ok "no Stripe/Formspree contact on load"
+grep -q 'static.cloudflareinsights.com/beacon.min.js' <<<"$HTML" && ok "analytics snippet present" || bad "analytics snippet missing"
 python3 - "$HTML" <<'PY' && ok "JSON-LD parses (SoftwareApplication + FAQPage)" || bad "JSON-LD invalid"
 import json, re, sys
 m = re.search(r'<script type="application/ld\+json">(.*?)</script>', sys.argv[1], re.S)

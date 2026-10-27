@@ -12,7 +12,8 @@
 
 | Day | Do | Done when |
 |---|---|---|
-| **1 (AM)** | Buy margincap.dev + getmargincap.com. Build the landing page from the copy below (Carrd / Framer / one HTML file on Cloudflare Pages). Add a waitlist form (Tally or a Google Form) + a Stripe Payment Link for the pre-order. Add Plausible or Umami. | Page live, form + payment link tested with a real card (refund yourself) |
+| **0 (done)** | ~~Domain, landing page, waitlist form, live Stripe link, analytics, uptime monitor.~~ All live on margincap.dev. Still yours: activate the Stripe customer portal, register the business name. | ✓ |
+| **1 (AM)** | Re-read Tier 1 below. Open each thread, note one specific detail per OP for the first line of your DM. | 10 personalised first lines written |
 | **1 (PM)** | Tier 1 threads: comment (Template A) where comments are open; DM the OP (Template B) on all of them. Max ~10 DMs today — Reddit flags bursts of identical DMs. | 10 contacts made, logged in the tracker |
 | **2** | Tier 2 threads: comment + DM. Post your own r/SaaS / Indie Hackers post (Template D). Reply to every Day 1 response within a few hours. | 10 more contacts, own post live |
 | **3** | Tier 3 threads (test the kill-switch message). Follow up (Template C) with anyone who replied but didn't sign up. Book 15-min calls with anyone warm. | Numbers in; call notes written |
@@ -34,7 +35,7 @@
 
 MarginCap links your LLM spend to your Stripe revenue, so you can see each customer's margin and cap the ones that are draining you. Setup takes 5 minutes, and it never sees your prompts.
 
-`[ Get early access ]`  `[ Pre-order: $19/mo for life → ]`
+`[ Get early access ]`  `[ Pre-order: $19/mo founding price → ]`
 
 <sub>Works with OpenAI, Anthropic, OpenRouter and Gemini. TypeScript first, Python next.</sub>
 
@@ -67,7 +68,7 @@ Your OpenAI dashboard can't tell you who it was.
 | Cost per customer | **+ Stripe margin view** | + Hard caps |
 | | + Email alerts | + Slack, cost per feature |
 
-**Founding member: $19/mo locked for life on the Indie plan.** First 50 people only.
+**Founding member: $19/mo on the Indie plan, locked while you stay subscribed.** First 50 people only.
 Charged today. Fully refunded on request any time before launch, no questions asked. Launching **[date, ~3 weeks out]**.
 
 `[ Pre-order for $19 → ]`
@@ -92,6 +93,21 @@ Me. [Name], a solo developer. [One line on why: "I run an AI side project and go
 **Stop guessing which customers are profitable.** `[ Get early access ]`
 
 ---
+
+## Tracking links (use these, never the bare domain)
+
+Every link carries a `?ref=` tag. The waitlist form saves it next to the email (Formspree), the pre-order passes it to Stripe as `client_reference_id`, and Cloudflare Web Analytics shows it per page view. That's how you'll know which channel actually converts.
+
+| Where | Link |
+|---|---|
+| DM, Tier 1 / 2 / 3 | `margincap.dev/?ref=dm-t1` · `?ref=dm-t2` · `?ref=dm-t3` |
+| Thread comment (only if someone asks for the link) | `margincap.dev/?ref=comment` |
+| Your own r/SaaS post | `margincap.dev/?ref=r-saas-post` |
+| Indie Hackers post | `margincap.dev/?ref=ih-post` |
+| Follow-ups (Template C) | `margincap.dev/?ref=followup` |
+| Reddit / X profile bio | `margincap.dev/?ref=profile` |
+
+Where to read results: waitlist signups and their `source` in the Formspree dashboard; pre-orders and `client_reference_id` in Stripe → Payments; visits and referrers in Cloudflare → Analytics & Logs → Web Analytics.
 
 ## Templates
 
@@ -120,10 +136,10 @@ Adapt the first line to the post. Keep the free tip; it's what earns the reply.
 > No pitch either way. Your answer is genuinely useful.
 
 **If they answer positively:**
-> Thanks, that's really helpful. Here's the page if you want early access: margincap.dev. I'm giving the first 50 people $19/mo for life (refundable until launch). Would you be up for a 15-min call this week? I'd love to see how you're handling it now.
+> Thanks, that's really helpful. Here's the page if you want early access: margincap.dev/?ref=dm-t[TIER]. The first 50 founding members get $19/mo, locked while they stay subscribed, fully refundable until launch. Would you be up for a 15-min call this week? I'd love to see how you're handling it now.
 
 ### C. Follow-up for warm-but-silent replies (Day 3, once only)
-> Quick follow-up. I'm closing the $19-for-life founding spots this week and wanted to make sure you saw it: margincap.dev. No worries at all if the timing's wrong. Thanks again for the earlier reply.
+> Quick follow-up in case it got buried: the founding spots ($19/mo, locked while you stay subscribed, refundable until launch) are here: margincap.dev/?ref=followup. No worries at all if the timing's wrong. Thanks again for the earlier reply.
 
 ### D. Your own post (r/SaaS / Indie Hackers)
 **Title:** I went through 27 threads of founders asking "which customers are my AI features losing money on?" Here's what people actually do.

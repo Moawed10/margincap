@@ -63,7 +63,9 @@ Deploy: Cloudflare Pages / Netlify with **`site` as the publish directory**.
 - [x] Address kept off the website; given privately on Stripe receipts + email footers (switch to a PO box once revenue arrives)
 - [ ] Stripe Public details → support address (live mode)
 - [ ] Register "MarginCap" business name with Service New Brunswick
-- [x] Formspree endpoint + Stripe **test** link in CONFIG
-- [ ] Test checkout (card 4242…) + one test signup
-- [ ] Swap in the **live** Stripe link; fill LAUNCH_DATE / FOUNDER_LINE; deploy
+- [x] Formspree endpoint + live Stripe link ($19 USD/mo, capped at 50) in CONFIG; FOUNDER_LINE set
+- [x] Cloudflare Web Analytics (cookieless, disclosed in /privacy); www → apex 301 redirect
+- [x] Uptime: `.github/workflows/uptime.yml` runs the smoke tests every 3 hours, GitHub emails on failure
+- [ ] Stripe customer portal: activate, then add the link to /support
+- [ ] LAUNCH_DATE (only once you can commit to one)
 - [ ] Run 3-day outreach, decide go/kill (≥30 waitlist + ≥3 pre-orders)
