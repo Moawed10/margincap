@@ -1,0 +1,19 @@
+# Read by Cloudflare Pages and Netlify. Basic hardening; no CSP so the analytics snippet keeps working.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# Caching: HTML always revalidates so deploys show up immediately; images/CSS cache for a day
+# (not "immutable": file names aren't fingerprinted, so a long cache would serve stale icons after a change)
+/
+  Cache-Control: public, max-age=0, must-revalidate
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+/*.png
+  Cache-Control: public, max-age=86400
+/*.svg
+  Cache-Control: public, max-age=86400
+/*.css
+  Cache-Control: public, max-age=3600

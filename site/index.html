@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fbfbfa">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0f12">
+<title>MarginCap — margin per customer for AI SaaS</title>
+<meta name="description" content="See which customers your AI features are losing you money on. MarginCap joins LLM spend with Stripe revenue and caps runaway users. Never sees your prompts.">
+<meta property="og:title" content="MarginCap — find the customers your AI features lose money on">
+<meta property="og:description" content="LLM cost + Stripe revenue = margin per customer. Alerts and hard caps. 5-minute setup.">
+<meta property="og:url" content="https://margincap.dev">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MarginCap">
+<!-- Social preview. Must be an absolute URL; source is assets/og.html -->
+<meta property="og:image" content="https://margincap.dev/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="MarginCap: a margin-by-customer table with two customers losing money highlighted in red">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://margincap.dev/og.png">
+<link rel="canonical" href="https://margincap.dev/">
+<!-- Warm up the two hosts a visitor hits next, so checkout and signup start instantly -->
+<link rel="preconnect" href="https://buy.stripe.com">
+<link rel="preconnect" href="https://formspree.io">
+<link rel="dns-prefetch" href="https://js.stripe.com">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<!-- Structured data: lets search engines and AI answer engines read the product, price and FAQ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "MarginCap",
+      "url": "https://margincap.dev/",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "description": "MarginCap joins LLM spend with Stripe revenue to show margin per customer for AI SaaS, with alerts and hard caps for unprofitable customers.",
+      "image": "https://margincap.dev/og.png",
+      "offers": [
+        { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD" },
+        { "@type": "Offer", "name": "Indie", "price": "29", "priceCurrency": "USD" },
+        { "@type": "Offer", "name": "Startup", "price": "79", "priceCurrency": "USD" }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "How is MarginCap different from Langfuse or Helicone?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Langfuse and Helicone are observability tools: they show what a user cost, but not what that user pays you. MarginCap joins AI cost with Stripe revenue to give margin per customer." } },
+        { "@type": "Question", "name": "Can't Stripe's token billing do this?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Stripe token billing helps you charge customers for tokens. On flat or per-seat pricing it doesn't show which customers you're losing money on." } },
+        { "@type": "Question", "name": "Do I need usage-based pricing to use MarginCap?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. MarginCap is built for flat and per-seat pricing, which is where unprofitable power users hide." } },
+        { "@type": "Question", "name": "Does MarginCap see my prompts?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. The SDK sends only token counts, model, customer ID and feature tag, never prompts or completions." } }
+      ]
+    }
+  ]
+}
+</script>
+<!-- TODO analytics: paste your Plausible or Umami <script> tag here -->
+<script>document.documentElement.classList.add("js")</script>
+<style>
+  :root {
+    --bg: #fbfbfa;
+    --surface: #ffffff;
+    --surface-2: #f3f4f2;
+    --text: #16181d;
+    --muted: #5d636e;
+    --border: #e4e6e3;
+    --accent: #059669;
+    --accent-ink: #ffffff;
+    --accent-soft: #e7f6f0;
+    --neg: #dc2626;
+    --neg-soft: #fdecec;
+    --code-bg: #14171c;
+    --code-text: #e6e8eb;
+    --shadow: 0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.06);
+    --radius: 14px;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+
+    /* Motion tokens: strong custom curves, never ease-in for UI */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --press: 160ms;
+    --enter: 300ms;
+    --reveal: 500ms;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d0f12;
+      --surface: #15181d;
+      --surface-2: #1b1f25;
+      --text: #eceef1;
+      --muted: #9aa1ac;
+      --border: #272c34;
+      --accent: #34d399;
+      --accent-ink: #062b1f;
+      --accent-soft: #10291f;
+      --neg: #f87171;
+      --neg-soft: #2c1517;
+      --code-bg: #0a0c0f;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  .wrap {
+    max-width: 1080px; margin: 0 auto;
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+  }
+  section { padding: 80px 0; }
+  h1, h2, h3 { line-height: 1.15; letter-spacing: -0.02em; margin: 0; }
+  h2 { font-size: clamp(28px, 4vw, 38px); text-wrap: balance; }
+  .eyebrow { font: 600 13px/1 var(--mono); color: var(--accent); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px; }
+  .lead { color: var(--muted); font-size: 18px; max-width: 620px; text-wrap: pretty; }
+  code, pre { font-family: var(--mono); }
+
+  /* Controls: instant press feedback, no text selection on long-press, no double-tap delay */
+  a, button, summary, .btn {
+    touch-action: manipulation;
+  }
+  .btn, summary, .logo {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* nav */
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    padding-top: env(safe-area-inset-top);
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .logo { display: flex; align-items: center; gap: 9px; font-weight: 700; text-decoration: none; letter-spacing: -0.01em; }
+  .logo-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); display: grid; place-items: center; color: var(--accent-ink); }
+  .logo-mark svg { width: 16px; height: 16px; }
+  .nav-links { display: flex; gap: 24px; align-items: center; font-size: 15px; }
+  .nav-links a:not(.btn) { text-decoration: none; color: var(--muted); transition: color 150ms ease; }
+
+  /* buttons */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 20px; border-radius: 10px; font: 600 15px/1 var(--sans);
+    text-decoration: none; border: 1px solid transparent; cursor: pointer; white-space: nowrap;
+    transition: transform var(--press) var(--ease-out), filter 150ms ease, border-color 150ms ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
+  .btn-ghost { background: var(--surface); border-color: var(--border); color: var(--text); }
+  .btn-sm { padding: 9px 14px; font-size: 14px; }
+  .btn:disabled { cursor: default; }
+  .arrow { display: inline-block; transition: transform 200ms var(--ease-out); }
+
+  /* All hover styles live behind a capability query: touch screens get stuck hover otherwise */
+  @media (hover: hover) and (pointer: fine) {
+    .nav-links a:not(.btn):hover { color: var(--text); }
+    .btn-primary:hover { filter: brightness(1.06); }
+    .btn-ghost:hover { border-color: var(--muted); }
+    .btn:hover .arrow { transform: translateX(3px); }
+    summary:hover { color: var(--accent); }
+  }
+
+  /* hero */
+  .hero { padding: 72px 0 64px; }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+  .hero h1 { font-size: clamp(36px, 5.4vw, 56px); margin-bottom: 20px; text-wrap: balance; }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero .lead { margin: 0 0 28px; }
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .fine { margin-top: 16px; font-size: 13px; color: var(--muted); }
+
+  /* margin table mock */
+  .mock { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .mock-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+  .mock-head b { color: var(--text); font-weight: 600; }
+  .pill { font: 600 11px/1 var(--mono); padding: 5px 8px; border-radius: 999px; background: var(--neg-soft); color: var(--neg); white-space: nowrap; }
+  .mock table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .mock th { text-align: left; font: 500 11px/1 var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 10px 16px; }
+  .mock th.r, .mock td.r { text-align: right; }
+  .mock td { padding: 11px 16px; border-top: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+  .mock tr.bad td { background: var(--neg-soft); }
+  .mock .cust { font-family: var(--mono); font-size: 13px; }
+  .neg { color: var(--neg); font-weight: 600; }
+  .pos { color: var(--accent); font-weight: 600; }
+  .capbtn { font: 600 11px/1 var(--mono); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--neg); color: var(--neg); display: inline-block; }
+  .mock-foot { padding: 10px 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); font-family: var(--mono); }
+
+  /* problem */
+  .problem { background: var(--surface-2); border-block: 1px solid var(--border); }
+  .problem-lines { font-size: clamp(26px, 4vw, 40px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; }
+  .problem-lines span { display: block; }
+  .problem-lines .hit { color: var(--neg); }
+  .problem-lines .dim { color: var(--muted); }
+
+  /* steps */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; min-width: 0; }
+  .step-n { font: 600 13px/1 var(--mono); color: var(--accent); margin-bottom: 12px; }
+  .card h3 { font-size: 18px; margin-bottom: 8px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+  pre.code { background: var(--code-bg); color: var(--code-text); border-radius: 10px; padding: 14px 16px; font-size: 13px; line-height: 1.55; overflow-x: auto; margin: 14px 0 0; }
+  .tk { color: #c792ea; } .ts { color: #a5e3a1; } .tf { color: #82aaff; }
+
+  /* features */
+  .features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 40px; }
+  .feature-icon { width: 36px; height: 36px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; margin-bottom: 14px; }
+  .feature-icon svg { width: 18px; height: 18px; }
+
+  /* privacy */
+  .privacy { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 40px; }
+  .privacy h2 { font-size: clamp(24px, 3.4vw, 32px); margin-bottom: 14px; }
+  .privacy p { color: var(--muted); margin: 0; }
+  .payload { font: 13px/1.7 var(--mono); background: var(--code-bg); color: var(--code-text); border-radius: 12px; padding: 18px 20px; overflow-x: auto; white-space: pre; }
+  .payload .k { color: #82aaff; } .payload .v { color: #a5e3a1; } .payload .no { color: #f87171; text-decoration: line-through; }
+  .payload .note { color: #9aa1ac; }
+
+  /* pricing */
+  .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px; align-items: stretch; }
+  .plan { display: flex; flex-direction: column; }
+  .plan h3 { font-size: 16px; color: var(--muted); font-weight: 600; }
+  .price { font-size: 40px; font-weight: 800; letter-spacing: -0.03em; margin: 8px 0 4px; font-variant-numeric: tabular-nums; }
+  .price small { font-size: 15px; color: var(--muted); font-weight: 500; }
+  .plan ul { list-style: none; padding: 0; margin: 16px 0 0; font-size: 15px; flex: 1; }
+  .plan li { padding: 6px 0 6px 24px; position: relative; }
+  .plan li::before { content: ""; position: absolute; left: 2px; top: 13px; width: 10px; height: 6px; border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(-45deg); }
+  .plan.featured { border: 2px solid var(--accent); position: relative; }
+  .badge { position: absolute; top: -12px; left: 24px; background: var(--accent); color: var(--accent-ink); font: 700 11px/1 var(--mono); padding: 6px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: .06em; }
+  .founding { margin-top: 28px; display: flex; gap: 24px; align-items: center; justify-content: space-between; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); border-radius: var(--radius); padding: 24px 28px; }
+  .founding h3 { font-size: 20px; margin-bottom: 6px; }
+  .founding p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  /* faq */
+  .faq { max-width: 760px; margin-top: 32px; }
+  details { border-bottom: 1px solid var(--border); padding: 18px 0; }
+  summary { cursor: pointer; font-weight: 600; font-size: 17px; list-style: none; display: flex; justify-content: space-between; gap: 16px; transition: color 150ms ease; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; color: var(--muted); font-weight: 400; font-size: 22px; line-height: 1; transition: transform 200ms var(--ease-out); }
+  details[open] summary::after { transform: rotate(45deg); }
+  details p { color: var(--muted); margin: 12px 0 0; }
+  details[open] p { animation: answer-in 200ms var(--ease-out); }
+  @keyframes answer-in { from { opacity: 0; transform: translateY(-4px); } }
+
+  /* waitlist */
+  .final { text-align: center; }
+  .final h2 { margin-bottom: 12px; }
+  .final .lead { margin: 0 auto 28px; }
+  form.waitlist { display: flex; gap: 10px; max-width: 480px; margin: 0 auto; }
+  /* 16px minimum: anything smaller makes iOS Safari zoom the page on focus */
+  form.waitlist input[type=email] { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: 16px var(--sans); transition: border-color 150ms ease; }
+  form.waitlist input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .hp { position: absolute; left: -9999px; }
+  .form-msg { min-height: 24px; margin-top: 12px; font-size: 14px; color: var(--muted); transition: opacity 200ms ease; }
+  .form-msg.ok { color: var(--accent); }
+  .form-msg.err { color: var(--neg); }
+  .form-msg.show { animation: msg-in 200ms var(--ease-out); }
+  @keyframes msg-in { from { opacity: 0; transform: translateY(-4px); } }
+  .or-preorder { margin-top: 18px; font-size: 14px; color: var(--muted); }
+
+  /* post-payment banner (Stripe redirects back with ?preorder=thanks) */
+  .thanks {
+    position: fixed; z-index: 20; left: 50%; top: calc(72px + env(safe-area-inset-top));
+    width: min(520px, calc(100% - 32px));
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--surface); border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+    border-radius: 12px; box-shadow: var(--shadow); padding: 14px 16px; font-size: 15px;
+    transform: translateX(-50%); opacity: 1;
+    transition: transform var(--enter) var(--ease-out), opacity var(--enter) var(--ease-out);
+  }
+  .thanks[hidden] { display: none; }
+  .thanks.out { opacity: 0; transform: translate(-50%, -8px); transition-duration: 180ms; }
+  @starting-style { .thanks { opacity: 0; transform: translate(-50%, -12px) scale(0.98); } }
+  .thanks b { display: block; margin-bottom: 2px; }
+  .thanks span { color: var(--muted); }
+  .thanks button { position: relative; margin-left: auto; background: none; border: 0; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; padding: 0 2px; }
+  /* Hit slop: the × is ~14px wide; give it a 44px touch target without changing how it looks */
+  .thanks button::after { content: ""; position: absolute; inset: -14px -15px; }
+
+  /* Continuous corners (iOS-style squircles) where supported; squircles read tighter, so radii go up ~1.5x */
+  @supports (corner-shape: squircle) {
+    .card, .mock, .privacy, .founding, .thanks, .btn, pre.code, .payload, .feature-icon, .logo-mark, form.waitlist input[type=email] { corner-shape: squircle; }
+    .card, .mock, .founding { border-radius: 22px; }
+    .privacy { border-radius: 30px; }
+    .btn, .thanks, form.waitlist input[type=email], .payload { border-radius: 16px; }
+    pre.code, .feature-icon, .logo-mark { border-radius: 12px; }
+  }
+
+  footer { border-top: 1px solid var(--border); padding: 28px 0 calc(28px + env(safe-area-inset-bottom)); font-size: 14px; color: var(--muted); }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+  /* ---------- Motion ----------
+     Seen once per visit, so a little delight is fine. Only transform + opacity, ease-out,
+     short stagger (60ms), never blocks interaction. Gated on .js so no-JS visitors see everything. */
+  .js .hero-in > * {
+    opacity: 0; transform: translateY(8px);
+    animation: rise var(--enter) var(--ease-out) forwards;
+  }
+  .js .hero-in > :nth-child(1) { animation-delay: 0ms; }
+  .js .hero-in > :nth-child(2) { animation-delay: 60ms; }
+  .js .hero-in > :nth-child(3) { animation-delay: 120ms; }
+  .js .hero-in > :nth-child(4) { animation-delay: 180ms; }
+  .js .hero-in > :nth-child(5) { animation-delay: 240ms; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+
+  /* Explanatory motion: rows arrive, then the money-losers light up red, which is the whole pitch */
+  .js .mock { opacity: 0; transform: translateY(12px) scale(0.98); animation: rise var(--reveal) var(--ease-out) 200ms forwards; }
+  .js .mock tbody tr { opacity: 0; animation: row-in 260ms var(--ease-out) forwards; }
+  .js .mock tbody tr:nth-child(1) { animation-delay: 420ms; }
+  .js .mock tbody tr:nth-child(2) { animation-delay: 470ms; }
+  .js .mock tbody tr:nth-child(3) { animation-delay: 520ms; }
+  .js .mock tbody tr:nth-child(4) { animation-delay: 570ms; }
+  .js .mock tbody tr:nth-child(5) { animation-delay: 620ms; }
+  @keyframes row-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .js .mock tr.bad td { animation: flag 400ms ease 950ms both; }
+  @keyframes flag { from { background: transparent; } }
+  .js .mock .capbtn, .js .mock .pill { opacity: 0; transform: scale(0.95); animation: rise 200ms var(--ease-out) 1150ms forwards; }
+
+  /* Scroll reveal: once, slightly before the element enters the viewport */
+  .js .reveal { opacity: 0; transform: translateY(12px); transition: opacity var(--reveal) var(--ease-out), transform var(--reveal) var(--ease-out); }
+  .js .reveal.in { opacity: 1; transform: none; }
+  .js .stagger > .reveal:nth-child(2) { transition-delay: 60ms; }
+  .js .stagger > .reveal:nth-child(3) { transition-delay: 120ms; }
+  .js .stagger > .reveal:nth-child(4) { transition-delay: 180ms; }
+
+  /* Reduced motion: fewer and gentler, not zero. Keep fades, drop movement. */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .js .hero-in > *, .js .mock, .js .mock tbody tr, .js .mock .capbtn, .js .mock .pill { transform: none; animation-name: fade; animation-delay: 0ms; }
+    .js .mock tr.bad td { animation: none; }
+    .js .reveal { transform: none; transition: opacity 200ms ease; }
+    .js .stagger > .reveal { transition-delay: 0ms; }
+    .btn:active { transform: none; }
+    .arrow, summary::after { transition: none; }
+    details[open] p, .form-msg.show { animation: none; }
+    .thanks, .thanks.out { transform: translateX(-50%); }
+    @starting-style { .thanks { transform: translateX(-50%); } }
+  }
+  @keyframes fade { to { opacity: 1; } }
+
+  @media (max-width: 860px) {
+    section { padding: 56px 0; }
+    .hero { padding: 44px 0 48px; }
+    .hero-grid, .privacy { grid-template-columns: 1fr; }
+    .privacy { padding: 28px 22px; gap: 24px; }
+    .steps, .features, .pricing { grid-template-columns: 1fr; }
+    .pricing { gap: 28px; }
+    .founding { flex-direction: column; align-items: flex-start; }
+    .nav-links a:not(.btn) { display: none; }
+  }
+  @media (max-width: 480px) {
+    .wrap { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+    form.waitlist { flex-direction: column; }
+    .cta-row .btn { flex: 1 1 100%; }
+    .mock th, .mock td { padding: 9px 10px; }
+    .mock .hide-sm { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="#" class="logo" aria-label="MarginCap home">
+      <span class="logo-mark"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4l5 4.5L13 4v8"/></svg></span>
+      MarginCap
+    </a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a href="#waitlist" class="btn btn-primary btn-sm">Get early access</a>
+    </div>
+  </div>
+</nav>
+
+<div class="thanks" role="status" hidden>
+  <div><b>You're a founding member.</b><span>$19/mo locked for life. I'll email you before launch — reply any time with questions.</span></div>
+  <button type="button" aria-label="Dismiss">×</button>
+</div>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-in">
+      <div class="eyebrow">Margin per customer for AI SaaS</div>
+      <h1>Find the customers your AI features are <em>losing you money</em> on.</h1>
+      <p class="lead">MarginCap joins your LLM spend with your Stripe revenue, so you see each customer's margin and can cap the ones draining you. 5-minute setup. Never sees your prompts.</p>
+      <div class="cta-row">
+        <a href="#waitlist" class="btn btn-primary">Get early access</a>
+        <a href="#" class="btn btn-ghost js-preorder">Pre-order: $19/mo for life <span class="arrow">→</span></a>
+      </div>
+      <p class="fine">Works with OpenAI, Anthropic, OpenRouter &amp; Gemini · TypeScript first, Python next</p>
+    </div>
+
+    <div class="mock" role="img" aria-label="Example MarginCap dashboard showing two customers with negative margin">
+      <div class="mock-head"><span><b>Margin by customer</b> · last 30 days</span><span class="pill">2 losing money</span></div>
+      <table>
+        <thead><tr><th>Customer</th><th class="r hide-sm">MRR</th><th class="r">AI cost</th><th class="r">Margin</th><th><span class="sr-only">Action</span></th></tr></thead>
+        <tbody>
+          <tr class="bad"><td class="cust">cus_8fK2…</td><td class="r hide-sm">$29</td><td class="r">$64.10</td><td class="r neg">−121%</td><td class="r"><span class="capbtn">Cap</span></td></tr>
+          <tr class="bad"><td class="cust">cus_Q1xa…</td><td class="r hide-sm">$49</td><td class="r">$52.80</td><td class="r neg">−8%</td><td class="r"><span class="capbtn">Cap</span></td></tr>
+          <tr><td class="cust">cus_3mPz…</td><td class="r hide-sm">$99</td><td class="r">$18.40</td><td class="r pos">81%</td><td></td></tr>
+          <tr><td class="cust">cus_Lr7d…</td><td class="r hide-sm">$29</td><td class="r">$2.15</td><td class="r pos">93%</td><td></td></tr>
+          <tr><td class="cust">cus_Wb0e…</td><td class="r hide-sm">$29</td><td class="r">$0.88</td><td class="r pos">97%</td><td></td></tr>
+        </tbody>
+      </table>
+      <div class="mock-foot">7% of customers → 51% of AI spend</div>
+    </div>
+  </div>
+</header>
+
+<section class="problem">
+  <div class="wrap">
+    <div class="problem-lines stagger">
+      <span class="reveal">You charge $29 a month.</span>
+      <span class="reveal hit">One customer just cost you $64 in tokens.</span>
+      <span class="reveal dim">Your OpenAI dashboard can't tell you who.</span>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="eyebrow">How it works</div>
+    <h2>Three steps. About five minutes.</h2>
+    <div class="steps stagger">
+      <div class="card reveal">
+        <div class="step-n">01</div>
+        <h3>Wrap your client</h3>
+        <p>One line around the SDK you already use.</p>
+<pre class="code"><span class="tf">track</span>(<span class="tk">new</span> <span class="tf">OpenAI</span>(), {
+  customerId: stripeId,
+  feature: <span class="ts">"summarize"</span>,
+})</pre>
+      </div>
+      <div class="card reveal">
+        <div class="step-n">02</div>
+        <h3>Connect Stripe</h3>
+        <p>Read-only access. We pull revenue per customer and touch nothing else.</p>
+      </div>
+      <div class="card reveal">
+        <div class="step-n">03</div>
+        <h3>See your margin table</h3>
+        <p>Revenue, AI cost and margin for every customer. Money-losers sorted to the top.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="eyebrow">What you get</div>
+    <h2>Know who's profitable. Stop who isn't.</h2>
+    <div class="features stagger">
+      <div class="card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div>
+        <h3>Margin per customer</h3>
+        <p>Revenue minus AI cost for every Stripe customer, with a 30-day trend.</p>
+      </div>
+      <div class="card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+        <h3>Cost per feature</h3>
+        <p>See which feature eats the budget: "summarize", "chat", that agent loop.</p>
+      </div>
+      <div class="card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+        <h3>Alerts</h3>
+        <p>Slack or email when a customer's AI cost passes X% of what they pay, or spikes 3× overnight.</p>
+      </div>
+      <div class="card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+        <h3>Hard caps</h3>
+        <p><code>canSpend(customerId)</code> returns allow, warn or block, so one runaway loop can't eat your month.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="privacy reveal">
+      <div>
+        <div class="eyebrow">Privacy</div>
+        <h2>We never see your prompts or completions.</h2>
+        <p>The SDK sends token counts, model, customer ID and feature tag. Nothing else. It runs async, outside your request path, so it can't slow down or break your app.</p>
+      </div>
+<div class="payload" aria-label="Example of the data MarginCap receives">{
+  <span class="k">"customer"</span>: <span class="v">"cus_8fK2…"</span>,
+  <span class="k">"feature"</span>: <span class="v">"summarize"</span>,
+  <span class="k">"model"</span>: <span class="v">"gpt-…"</span>,
+  <span class="k">"input_tokens"</span>: <span class="v">1840</span>,
+  <span class="k">"output_tokens"</span>: <span class="v">412</span>,
+  <span class="k">"cached_tokens"</span>: <span class="v">1200</span>
+}
+<span class="no">"prompt"</span>  <span class="no">"completion"</span>
+<span class="note">↑ never sent</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing" style="padding-top:0">
+  <div class="wrap">
+    <div class="eyebrow">Pricing</div>
+    <h2>Priced for founders, not FinOps teams.</h2>
+    <div class="pricing stagger">
+      <div class="card plan reveal">
+        <h3>Free</h3>
+        <div class="price">$0</div>
+        <ul>
+          <li>50k events / month</li>
+          <li>Cost per customer</li>
+        </ul>
+      </div>
+      <div class="card plan featured reveal">
+        <span class="badge">Most popular</span>
+        <h3>Indie</h3>
+        <div class="price">$29<small>/mo</small></div>
+        <ul>
+          <li>1M events / month</li>
+          <li><b>Stripe margin view</b></li>
+          <li>Email alerts</li>
+        </ul>
+      </div>
+      <div class="card plan reveal">
+        <h3>Startup</h3>
+        <div class="price">$79<small>/mo</small></div>
+        <ul>
+          <li>10M events / month</li>
+          <li>Hard caps</li>
+          <li>Slack alerts</li>
+          <li>Cost per feature</li>
+        </ul>
+      </div>
+    </div>
+    <div class="founding reveal">
+      <div>
+        <h3>Founding member: $19/mo on Indie, locked for life</h3>
+        <p>First 50 people only. Charged today, fully refunded on request any time before launch. <span class="js-launch-line">Launching soon.</span></p>
+      </div>
+      <a href="#" class="btn btn-primary js-preorder">Pre-order for $19 <span class="arrow">→</span></a>
+    </div>
+  </div>
+</section>
+
+<section id="faq" style="padding-top:0">
+  <div class="wrap">
+    <div class="eyebrow">FAQ</div>
+    <h2>Questions</h2>
+    <div class="faq">
+      <details>
+        <summary>How is this different from Langfuse or Helicone?</summary>
+        <p>They're observability tools. They show what a user <em>cost</em>, but they don't know what that user <em>pays</em> you. MarginCap joins the two and gives you margin. (Helicone has been in maintenance mode since its acquisition. If you're on it, we'll help you switch.)</p>
+      </details>
+      <details>
+        <summary>Can't Stripe's token billing do this?</summary>
+        <p>Stripe token billing helps you <em>charge</em> customers for tokens. If you're on flat or per-seat pricing, like most of us, it doesn't show which customers you're losing money on.</p>
+      </details>
+      <details>
+        <summary>Do I need usage-based pricing?</summary>
+        <p>No. MarginCap is built for flat and per-seat pricing, which is exactly where power users hide.</p>
+      </details>
+      <details>
+        <summary>What if I don't use Stripe?</summary>
+        <p>You still get cost per customer and hard caps. A CSV revenue import is coming soon.</p>
+      </details>
+      <details>
+        <summary>Who's building this?</summary>
+        <p><span class="js-founder">A solo developer</span>. Questions? <a href="mailto:hello@margincap.dev" class="js-email">hello@margincap.dev</a></p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section id="waitlist" class="final" style="padding-top:0">
+  <div class="wrap reveal">
+    <h2>Stop guessing which customers are profitable.</h2>
+    <p class="lead">Join the early-access list. One email when it's ready, no spam.</p>
+    <form class="waitlist" novalidate>
+      <label for="email" class="sr-only">Email</label>
+      <input type="email" id="email" name="email" placeholder="you@company.com" autocomplete="email" inputmode="email" required>
+      <input type="text" name="_gotcha" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button type="submit" class="btn btn-primary"><span class="label">Get early access</span></button>
+    </form>
+    <div class="form-msg" role="status" aria-live="polite"></div>
+    <p class="or-preorder">Want to lock in $19/mo for life? <a href="#" class="js-preorder">Pre-order a founding spot →</a></p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© <span class="js-year">2026</span> MarginCap</span>
+    <span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="mailto:hello@margincap.dev" class="js-email">hello@margincap.dev</a></span>
+  </div>
+</footer>
+
+<script>
+  // ---- CONFIG: fill these in before deploying ----
+  const CONFIG = {
+    // Stripe Payment Link for the $19/mo founding pre-order (Stripe Dashboard → Payment Links).
+    // Set its "After payment" option to redirect to https://margincap.dev/?preorder=thanks
+    STRIPE_PREORDER_LINK: "https://buy.stripe.com/test_aFa28taVI7GD2o9biE7ok00", // TEST mode: swap for the live link before launch
+    // Formspree form endpoint, e.g. "https://formspree.io/f/xyzabcd".
+    // Leave empty and the form shows a "not connected" message instead of silently dropping signups.
+    WAITLIST_ENDPOINT: "https://formspree.io/f/mnpppzwr",
+    LAUNCH_DATE: "",                      // e.g. "November 16"
+    FOUNDER_LINE: "",                     // e.g. "I'm Omar, a solo developer who got burned by a $64 power user."
+    CONTACT_EMAIL: "hello@margincap.dev",
+  };
+  // -------------------------------------------------
+
+  const configured = (v) => v && !v.includes("REPLACE_ME");
+  const params = new URLSearchParams(location.search);
+  const ref = params.get("ref") || params.get("utm_source") || "direct";
+
+  document.querySelectorAll(".js-preorder").forEach((a) => {
+    if (configured(CONFIG.STRIPE_PREORDER_LINK)) {
+      // Carry the traffic source into Stripe so you can see which channel pre-orders came from
+      // (Stripe only accepts letters, digits, - and _ here, up to 200 chars)
+      const refId = ref.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 200);
+      a.href = CONFIG.STRIPE_PREORDER_LINK + (CONFIG.STRIPE_PREORDER_LINK.includes("?") ? "&" : "?") + "client_reference_id=" + refId;
+      a.rel = "noopener";
+    } else {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        document.getElementById("waitlist").scrollIntoView();
+        setMsg("Pre-orders open soon. Join the list and you'll get first dibs on a founding spot.");
+      });
+    }
+  });
+
+  if (CONFIG.LAUNCH_DATE) document.querySelectorAll(".js-launch-line").forEach((el) => (el.textContent = "Launching " + CONFIG.LAUNCH_DATE + "."));
+  if (CONFIG.FOUNDER_LINE) document.querySelectorAll(".js-founder").forEach((el) => (el.textContent = CONFIG.FOUNDER_LINE.replace(/\.$/, "")));
+  document.querySelectorAll(".js-email").forEach((a) => { a.href = "mailto:" + CONFIG.CONTACT_EMAIL; a.textContent = CONFIG.CONTACT_EMAIL; });
+  document.querySelectorAll(".js-year").forEach((el) => (el.textContent = new Date().getFullYear()));
+
+  // Thank-you banner after Stripe redirects back with ?preorder=thanks
+  const thanks = document.querySelector(".thanks");
+  if (params.get("preorder") === "thanks") {
+    thanks.hidden = false;
+    history.replaceState(null, "", location.pathname + location.hash); // a refresh shouldn't show it again
+    const close = () => { thanks.classList.add("out"); setTimeout(() => (thanks.hidden = true), 200); };
+    thanks.querySelector("button").addEventListener("click", close);
+    setTimeout(close, 9000);
+  }
+
+  // Scroll reveal: once per element, starting a little before it enters the viewport
+  const revealEls = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } });
+    }, { rootMargin: "0px 0px -60px 0px" });
+    revealEls.forEach((el) => io.observe(el));
+  } else {
+    revealEls.forEach((el) => el.classList.add("in"));
+  }
+
+  const form = document.querySelector("form.waitlist");
+  const msg = document.querySelector(".form-msg");
+  function setMsg(text, cls) {
+    msg.textContent = text;
+    msg.className = "form-msg " + (cls || "");
+    void msg.offsetWidth; // restart the fade so repeated messages still register
+    msg.classList.add("show");
+  }
+
+  // Remember who already signed up on this device, so a double-click, refresh or repeat visit
+  // doesn't send a duplicate (idempotency). Storage can be blocked, so every access is guarded.
+  const SIGNED_KEY = "mc_waitlist";
+  const signedUp = () => { try { return JSON.parse(localStorage.getItem(SIGNED_KEY) || "[]"); } catch { return []; } };
+  const markSigned = (email) => { try { localStorage.setItem(SIGNED_KEY, JSON.stringify([...new Set([...signedUp(), email])])); } catch {} };
+  let inFlight = null;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = form.email.value.trim().toLowerCase();
+    if (form._gotcha.value) return; // honeypot: bots fill hidden fields
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setMsg("Please enter a valid email.", "err");
+    if (!CONFIG.WAITLIST_ENDPOINT) return setMsg("Waitlist isn't connected yet (set WAITLIST_ENDPOINT).", "err");
+    if (inFlight === email) return;
+    if (signedUp().includes(email)) { form.reset(); return setMsg("You're already on the list. See you at launch.", "ok"); }
+
+    // Optimistic: confirm instantly, roll back only if the request fails
+    inFlight = email;
+    form.reset();
+    setMsg("You're on the list. Watch your inbox.", "ok");
+    try {
+      const res = await fetch(CONFIG.WAITLIST_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        // source = ?ref=… from your Reddit/IH links, so you can see which channel converts
+        body: JSON.stringify({ email, source: ref }),
+      });
+      if (res.status === 429) throw new Error("rate");
+      if (!res.ok) throw new Error(res.status);
+      markSigned(email);
+    } catch (err) {
+      form.email.value = email; // give their input back so they can retry
+      // 429 = Formspree rate limit or the plan's monthly cap; either way, don't lose the lead
+      setMsg(err.message === "rate"
+        ? "Couldn't add you right now. Email " + CONFIG.CONTACT_EMAIL + " and I'll add you by hand."
+        : "That didn't go through. Try again, or email " + CONFIG.CONTACT_EMAIL + ".", "err");
+    } finally {
+      inFlight = null;
+    }
+  });
+</script>
+</body>
+</html>
